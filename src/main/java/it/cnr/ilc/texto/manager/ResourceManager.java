@@ -1,10 +1,12 @@
 package it.cnr.ilc.texto.manager;
 
+import static it.cnr.ilc.texto.manager.FolderManager.MAX_PATH_DEPTH;
+import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.Folder;
 import it.cnr.ilc.texto.domain.Offset;
-import static it.cnr.ilc.texto.manager.FolderManager.MAX_PATH_DEPTH;
 import it.cnr.ilc.texto.domain.Resource;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.PreparedStatement;
@@ -70,11 +72,11 @@ public class ResourceManager extends EntityManager<Resource> {
         return databaseManager.queryFirst(sql.toString(), Number.class).intValue();
     }
 
-    public boolean exists(Folder parent, String name) throws SQLException {
+    public boolean exists(Folder parent, String name) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
-        sql.append("select count(id) from ").append(DomainManager.quote(Resource.class))
+        sql.append("select count(id) from ").append(quote(Resource.class))
                 .append(" where status = 1")
-                .append(" and name = '").append(name).append("'")
+                .append(" and name = ").append(sqlValue(name))
                 .append(" and parent_id = ").append(parent.getId());
         return databaseManager.queryFirst(sql.toString(), Number.class).intValue() > 0;
     }
@@ -100,6 +102,9 @@ public class ResourceManager extends EntityManager<Resource> {
         StringBuilder sql = new StringBuilder();
         sql.append("select text from _text where resource_id = ").append(resourceId);
         String text = databaseManager.queryFirst(sql.toString(), String.class);
+        if (text.isBlank()) {
+            throw new ManagerException("empty text not allowed");
+        }
         BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.ITALIAN);
         iterator.setText(text);
         int start = iterator.first();

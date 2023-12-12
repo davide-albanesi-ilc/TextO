@@ -2,6 +2,7 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.User;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import java.sql.SQLException;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ public class UserManager extends EntityManager<User> {
 
     public User authenticate(String username, String password) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
-        sql.append("select * from ").append(DomainManager.quote(User.class)).append(" u ")
+        sql.append("select * from ").append(quote(User.class)).append(" u ")
                 .append("join _credential c on c.user_id = u.id ")
                 .append("where u.username = '").append(username).append("' ")
                 .append("and c.password = upper(sha1('").append(password).append("')) ")

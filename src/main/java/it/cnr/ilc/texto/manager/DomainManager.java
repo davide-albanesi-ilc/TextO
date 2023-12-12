@@ -3,6 +3,7 @@ package it.cnr.ilc.texto.manager;
 import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.annotation.Final;
+import it.cnr.ilc.texto.domain.annotation.Matched;
 import it.cnr.ilc.texto.domain.annotation.Required;
 import it.cnr.ilc.texto.domain.annotation.Unique;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
@@ -311,7 +312,7 @@ public class DomainManager extends Manager {
             value = field.getter.invoke(entity);
             if (value != null) {
                 sql.append(", ").append(quote(field.sqlField));
-                values.append(", ").append(getSQLValue(value));
+                values.append(", ").append(sqlValue(value));
             }
         }
         sql.append(") values (").append(values).append(")");
@@ -331,7 +332,8 @@ public class DomainManager extends Manager {
         StringBuilder sql;
         Object previousValue, value;
         FieldDescriptor groupField;
-        Object groupValue = null;
+        Object groupValue;
+        String pattern;
         for (FieldDescriptor field : descriptor.fields.values()) {
             value = field.getter.invoke(entity);
             previousValue = previous == null ? null : field.getter.invoke(previous);
@@ -339,13 +341,19 @@ public class DomainManager extends Manager {
                 throw new ManagerException(field.name + " required");
             }
             if (field.getter.isAnnotationPresent(Final.class) && previousValue != null && !previousValue.equals(value)) {
-                throw new ManagerException(field.name + " not final");
+                throw new ManagerException(field.name + " final");
+            }
+            if (field.getter.isAnnotationPresent(Matched.class) && value != null) {
+                pattern = (field.getter.getAnnotation(Matched.class)).value();
+                if (!value.toString().matches(pattern)) {
+                    throw new ManagerException(field.name + " not valid");
+                }
             }
             if (field.getter.isAnnotationPresent(Unique.class) && value != null) {
                 sql = new StringBuilder();
                 sql.append("select count(id) from ").append(quote(descriptor.name))
                         .append(" where status = 1 and ")
-                        .append(quote(field.sqlField)).append(" = ").append(getSQLValue(value));
+                        .append(quote(field.sqlField)).append(" = ").append(sqlValue(value));
                 if (entity.getId() != null) {
                     sql.append(" and id <> ").append(entity.getId());
                 }
@@ -359,7 +367,7 @@ public class DomainManager extends Manager {
                     }
                     groupValue = groupField.getter.invoke(entity);
                     if (groupValue != null) {
-                        sql.append(" and ").append(quote(groupField.sqlField)).append(" = ").append(getSQLValue(groupValue));
+                        sql.append(" and ").append(quote(groupField.sqlField)).append(" = ").append(sqlValue(groupValue));
                     }
                 }
                 if (databaseManager.queryFirst(sql.toString(), Number.class).intValue() > 0) {
@@ -380,7 +388,7 @@ public class DomainManager extends Manager {
                     sql = new StringBuilder();
                     sql.append("select count(id) from ").append(quote(field.type))
                             .append(" where status = ").append(Status.VALID.ordinal())
-                            .append(" and id = ").append(getSQLValue(value));
+                            .append(" and id = ").append(sqlValue(value));
                     if (databaseManager.queryFirst(sql.toString(), Number.class).intValue() == 0) {
                         throw new ManagerException(field.name + " not found");
                     }
@@ -429,24 +437,6 @@ public class DomainManager extends Manager {
             }
         }
         throw new ManagerException("no changes");
-    }
-
-    private String getSQLValue(Object value) throws ReflectiveOperationException {
-        if (value instanceof Entity entity) {
-            return entity.getId().toString();
-        } else if (value instanceof Enum enumeration) {
-            return "'" + enumeration.name() + "'";
-        } else if (value instanceof Number) {
-            return value.toString();
-        } else if (value instanceof Boolean) {
-            return value.toString();
-        } else if (value instanceof String) {
-            return "'" + value + "'";
-        } else if (value instanceof LocalDateTime localDateTime) {
-            return "'" + localDateTime.format(DATETIME_FORMATTER) + "'";
-        } else {
-            throw new ReflectiveOperationException("unsupported type " + value.getClass());
-        }
     }
 
     public synchronized long newId() throws SQLException {
@@ -586,6 +576,24 @@ public class DomainManager extends Manager {
 
     public static String quote(String name) {
         return "`" + name + "`";
+    }
+
+    public static String sqlValue(Object value) throws ReflectiveOperationException {
+        if (value instanceof Entity entity) {
+            return entity.getId().toString();
+        } else if (value instanceof Enum enumeration) {
+            return "'" + enumeration.name() + "'";
+        } else if (value instanceof Number) {
+            return value.toString();
+        } else if (value instanceof Boolean) {
+            return value.toString();
+        } else if (value instanceof String string) {
+            return "'" + string.replaceAll("'", "''") + "'";
+        } else if (value instanceof LocalDateTime localDateTime) {
+            return "'" + localDateTime.format(DATETIME_FORMATTER) + "'";
+        } else {
+            throw new ReflectiveOperationException("unsupported type " + value.getClass());
+        }
     }
 
     private class Cache {

@@ -6,6 +6,8 @@ import it.cnr.ilc.texto.domain.Listable;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.User;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,50 +54,56 @@ public class FolderManager extends EntityManager<Folder> {
         return databaseManager.queryFirst(select.toString(), String.class);
     }
 
-    public boolean exists(Folder parent, String name) throws SQLException {
+    public boolean exists(Folder parent, String name) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
-        sql.append("select count(id) from ").append(DomainManager.quote(Folder.class))
+        sql.append("select count(id) from ").append(quote(Folder.class))
                 .append(" where status = 1")
-                .append(" and name = '").append(name).append("'")
+                .append(" and name = ").append(sqlValue(name))
                 .append(" and parent_id = ").append(parent.getId());
         return databaseManager.queryFirst(sql.toString(), Number.class).intValue() > 0;
     }
 
     public Folder getHome(User user) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
-        sql.append("select * from ").append(DomainManager.quote(Folder.class))
-                .append(" where user_id = ").append(user.getId())
-                .append(" and status = 1 and parent_id is null");
+        sql.append("select * from ").append(quote(Folder.class))
+                .append(" where status = 1 and parent_id is null");
+        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+            sql.append(" and user_id = ").append(user.getId());
+        }
         return loadUnique(sql.toString());
     }
 
     public void createHome(User user) throws SQLException, ReflectiveOperationException, ManagerException {
-        Long id = domainManager.newId();
-        StringBuilder sql = new StringBuilder();
-        sql.append("insert into ").append(DomainManager.quote(Folder.class))
-                .append(" (id, status, time, name, user_id)")
-                .append(" values (").append(id).append(", 1, now(), '")
-                .append(user.getUsername()).append("', ").append(user.getId()).append(")");
-        databaseManager.update(sql.toString());
+        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+            Long id = domainManager.newId();
+            StringBuilder sql = new StringBuilder();
+            sql.append("insert into ").append(quote(Folder.class))
+                    .append(" (id, status, time, name, user_id)")
+                    .append(" values (").append(id).append(", 1, now(), '")
+                    .append(user.getUsername()).append("', ").append(user.getId()).append(")");
+            databaseManager.update(sql.toString());
+        }
     }
 
     public void removeHome(User user) throws SQLException, ReflectiveOperationException, ManagerException {
-        Folder home = getHome(user);
-        if (home == null) {
-            throw new ManagerException("home not found");
+        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+            Folder home = getHome(user);
+            if (home == null) {
+                throw new ManagerException("home not found");
+            }
+            StringBuilder sql = new StringBuilder();
+            sql.append("update ").append(quote(Folder.class))
+                    .append(" set status = ").append(Status.HISTORY.ordinal())
+                    .append(" where id = ").append(home.getId())
+                    .append(" and status = ").append(Status.VALID.ordinal());
+            databaseManager.update(sql.toString());
+            sql = new StringBuilder();
+            sql.append("insert into ").append(quote(Folder.class))
+                    .append(" (id, status, time, name, user_id)")
+                    .append(" values (").append(home.getId()).append(", 2, now(), '")
+                    .append(user.getUsername()).append("', ").append(user.getId()).append(")");
+            databaseManager.update(sql.toString());
         }
-        StringBuilder sql = new StringBuilder();
-        sql.append("update ").append(DomainManager.quote(Folder.class))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(home.getId())
-                .append(" and status = ").append(Status.VALID.ordinal());
-        databaseManager.update(sql.toString());
-        sql = new StringBuilder();
-        sql.append("insert into ").append(DomainManager.quote(Folder.class))
-                .append(" (id, status, time, name, user_id)")
-                .append(" values (").append(home.getId()).append(", 2, now(), '")
-                .append(user.getUsername()).append("', ").append(user.getId()).append(")");
-        databaseManager.update(sql.toString());
     }
 
     private Map<String, Object> toMap(Listable listable) {
@@ -122,17 +130,25 @@ public class FolderManager extends EntityManager<Folder> {
         return listables.stream().map(l -> toMap(l)).collect(Collectors.toList());
     }
 
+    public List<Map<String, Object>> list(Folder folder) throws SQLException, ReflectiveOperationException, ManagerException {
+        return toMapList(list(folder.getId()));
+    }
+
     private List<Listable> list(Long id) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
-        sql.append("select * from ").append(DomainManager.quote(Folder.class))
+        sql.append("select * from ").append(quote(Folder.class))
                 .append(" where status = 1 and parent_id = ").append(id);
         List<Listable> list = new ArrayList<>(load(sql.toString()));
         sql = new StringBuilder();
-        sql.append("select * from ").append(DomainManager.quote(Resource.class))
+        sql.append("select * from ").append(quote(Resource.class))
                 .append(" where status = 1 and parent_id = ").append(id);
         list.addAll(domainManager.load(Resource.class, sql.toString()));
         Collections.sort(list, (l1, l2) -> l1.getName().compareTo(l2.getName()));
         return list;
+    }
+
+    public List<Map<String, Object>> tree(Folder folder) throws SQLException, ReflectiveOperationException, ManagerException {
+        return tree(folder.getId());
     }
 
     private List<Map<String, Object>> tree(Long id) throws SQLException, ReflectiveOperationException, ManagerException {
@@ -143,18 +159,6 @@ public class FolderManager extends EntityManager<Folder> {
             }
         }
         return list;
-
-    }
-
-    public List<Map<String, Object>> list(Folder folder) throws SQLException, ReflectiveOperationException, ManagerException {
-        return toMapList(list(folder.getId()));
-    }
-
-    public List<Map<String, Object>> tree(Folder home) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (home == null) {
-            return Collections.EMPTY_LIST;
-        }
-        return tree(home.getId());
     }
 
 }

@@ -32,7 +32,8 @@ public class FeatureManager extends EntityManager<Feature> {
     public List<Feature> load(Layer layer) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Feature.class))
-                .append(" where status = 1 and layer_id = ").append(layer.getId());
+                .append(" where status = 1")
+                .append(" and layer_id = ").append(layer.getId());
         List<Feature> features = load(sql.toString());
         for (Feature feature : features) {
             if (feature.getTagset() != null) {

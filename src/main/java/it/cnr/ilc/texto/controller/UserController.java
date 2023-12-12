@@ -94,9 +94,7 @@ public class UserController extends EntityController<User> {
         }
         logManager.appendMessage(entityManager().getLog(user));
         Folder home = folderManager.getHome(user);
-        if (home != null) {
-            accessManager.checkAccess(home, Action.READ);
-        }
+        accessManager.checkAccess(home, Action.READ);
         return home;
     }
 
@@ -105,9 +103,7 @@ public class UserController extends EntityController<User> {
         User me = accessManager.getUser();
         logManager.setMessage("get home of " + User.class.getSimpleName()).appendMessage(entityManager().getLog(me));
         Folder home = folderManager.getHome(me);
-        if (home != null) {
-            accessManager.checkAccess(home, Action.READ);
-        }
+        accessManager.checkAccess(home, Action.READ);
         return home;
     }
 
@@ -121,6 +117,7 @@ public class UserController extends EntityController<User> {
         }
         logManager.appendMessage(entityManager().getLog(user));
         Folder home = folderManager.getHome(user);
+        accessManager.checkAccess(home, Action.READ);
         return folderManager.tree(home);
     }
 
@@ -129,6 +126,8 @@ public class UserController extends EntityController<User> {
         User me = accessManager.getUser();
         logManager.setMessage("get tree of " + User.class.getSimpleName()).appendMessage(entityManager().getLog(me));
         Folder home = folderManager.getHome(me);
+        accessManager.checkAccess(home, Action.READ);
         return folderManager.tree(home);
     }
+
 }

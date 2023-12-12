@@ -50,10 +50,7 @@ public class FolderController extends EntityController<Folder> {
 
     @Override
     protected void preCreate(Folder folder) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (folder.getName() != null && folder.getName().isBlank()) {
-            throw new ManagerException("blank name");
-        }
-        if (resourceManager.exists(folder.getParent(), folder.getName())) {
+        if (folder.getName() != null && resourceManager.exists(folder.getParent(), folder.getName())) {
             throw new ManagerException("name exists");
         }
     }
@@ -63,10 +60,7 @@ public class FolderController extends EntityController<Folder> {
         if (previous.getParent() == null) {
             throw new ManagerException("unable to update home");
         }
-        if (folder.getName() != null && folder.getName().isBlank()) {
-            throw new ManagerException("blank name not allowed");
-        }
-        if (resourceManager.exists(folder.getParent(), folder.getName())) {
+        if (folder.getName() != null && resourceManager.exists(folder.getParent(), folder.getName())) {
             throw new ManagerException("name exists");
         }
     }
@@ -75,9 +69,6 @@ public class FolderController extends EntityController<Folder> {
     protected void preUpdatePartial(Folder previous, Folder entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         if (previous.getParent() == null) {
             throw new ManagerException("unable to update home");
-        }
-        if (entity.getName() != null && entity.getName().isBlank()) {
-            throw new ManagerException("blank name");
         }
         if (entity.getParent() != null) {
             if (resourceManager.exists(entity.getParent(), entity.getName() == null ? previous.getName() : entity.getName())) {

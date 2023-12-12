@@ -2,7 +2,6 @@ package it.cnr.ilc.texto.util;
 
 import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.annotation.Required;
-import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -13,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 
 /**
  *
@@ -136,7 +136,7 @@ public class DatabaseCreator {
     }
 
     private String initAccess() throws IOException {
-        List<String> lines = Files.readAllLines(Path.of("doc/accesses.txt"));
+        List<String> lines = Files.readAllLines(Path.of("docs/accesses.txt"));
         StringBuilder builder = new StringBuilder();
         for (String line : lines) {
             if (!line.trim().isEmpty()) {
@@ -149,11 +149,12 @@ public class DatabaseCreator {
     private String initEntities() {
         StringBuilder builder = new StringBuilder();
         builder.append("insert into Role (id, status, time, name) values (1, 1, now(), 'Administrator');\n")
-                .append("insert into Role (id, status, time, name) values (2, 1, now(), 'Annotator');\n")
+                .append("insert into Role (id, status, time, name) values (2, 1, now(), 'Editor');\n")
                 .append("insert into Role (id, status, time, name) values (3, 1, now(), 'Viewer');\n")
                 .append("insert into User (id, status, time, name, username, role_id, enabled) values (4, 1, now(), 'Administrator', 'admin', 1, true);\n")
-                .append("insert into _credential (user_id, password) values (4, upper(sha1('ilcPisa13-')));\n")
-                .append("update _sequence set id = 4;");
+                .append("insert into _credential (user_id, password) values (4, upper(sha1('Maia$23-')));\n")
+                .append("insert into Folder (id, status, time, name, user_id) values (5, 1, now(), 'Administrator', 4);\n")
+                .append("update _sequence set id = 5;");
         return builder.toString();
     }
 

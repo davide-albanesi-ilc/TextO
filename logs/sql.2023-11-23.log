@@ -1,0 +1,24 @@
+2023-11-23 09:10:04 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-11-23 09:57:10 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-11-23 14:42:39 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-11-23 14:43:04 : select * from `User` where status = 1 and username = 'davide'
+2023-11-23 14:43:04 : select * from `Folder` where status = 1 and parent_id is null
+2023-11-23 14:43:04 : select * from `Folder` where status = 1 and parent_id = 5
+2023-11-23 14:43:04 : select * from `Resource` where status = 1 and parent_id = 5
+2023-11-23 14:43:04 : select * from `Folder` where status = 1 and parent_id = 15
+2023-11-23 14:43:04 : select * from `Resource` where status = 1 and parent_id = 15
+2023-11-23 14:43:04 : select * from `Folder` where status = 1 and parent_id = 7
+2023-11-23 14:43:04 : select * from `Resource` where status = 1 and parent_id = 7
+2023-11-23 14:56:06 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-11-23 14:56:22 : select * from `User` where status = 1 and username = 'davide'
+2023-11-23 14:56:22 : select * from `Folder` where status = 1 and parent_id is null
+2023-11-23 14:56:22 : select * from `Folder` where status = 1 and parent_id = 5
+2023-11-23 14:56:22 : select * from `Resource` where status = 1 and parent_id = 5
+2023-11-23 14:56:22 : select * from `Folder` where status = 1 and parent_id = 15
+2023-11-23 14:56:22 : select * from `Resource` where status = 1 and parent_id = 15
+2023-11-23 14:56:22 : select * from `Folder` where status = 1 and parent_id = 7
+2023-11-23 14:56:22 : select * from `Resource` where status = 1 and parent_id = 7
+2023-11-23 14:57:41 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-11-23 14:59:22 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-11-23 15:00:15 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-11-23 15:01:15 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name

@@ -4,6 +4,7 @@ import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.Userable;
 import it.cnr.ilc.texto.manager.DomainManager;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.EntityManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
@@ -42,7 +43,7 @@ public abstract class EntityController<E extends Entity> extends Controller {
         logManager.setMessage("get").appendMessage(entityClass()).appendMessage("filtered list");
         checkAccess(Action.READ);
         StringBuilder builder = new StringBuilder();
-        builder.append("select * from ").append(DomainManager.quote(entityClass()))
+        builder.append("select * from ").append(quote(entityClass()))
                 .append(" where status = 1 and (").append(where).append(")");
         return entityManager().load(builder.toString());
     }
