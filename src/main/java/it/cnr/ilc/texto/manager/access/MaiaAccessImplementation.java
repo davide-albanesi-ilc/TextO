@@ -21,12 +21,12 @@ public class MaiaAccessImplementation extends JWTExternAccessImplementation {
 
     public MaiaAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager entityManager) {
         super(environment, databaseManager, entityManager);
-        matches.put("AMMINISTRATORE", "Administrator");
-        matches.put("SUPERVISORE", "Editor");
-        matches.put("LESSICOGRAFO", "Viewer");
-        matches.put("ANNOTATORE", "Editor");
-        matches.put("LESSICOGRAFO_ANNOTATORE", "Editor");
-        matches.put("UTENTE_VIEWER", "Viewer");
+        matches.put("ADMINISTRATOR", "Administrator");
+        matches.put("SUPERVISOR", "Editor");
+        matches.put("LEXICOGRAPHER", "Viewer");
+        matches.put("ANNOTATOR", "Editor");
+        matches.put("LEXICOGRAPHER_ANNOTATOR", "Editor");
+        matches.put("VIEWER", "Viewer");
     }
 
     @Override
