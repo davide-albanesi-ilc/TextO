@@ -37,8 +37,11 @@ public class AccessManager extends Manager implements Closeable {
 
     private AccessImplementation implementation;
 
+    private AccessManager() {
+    }
+
     @PostConstruct
-    private void postConstruct() throws ReflectiveOperationException, SQLException {
+    private void initImplementation() throws ReflectiveOperationException, SQLException {
         Class clazz = Class.forName(environment.getProperty("access.implementation.class"));
         implementation = (AccessImplementation) clazz.getConstructor(Environment.class, DatabaseManager.class, DomainManager.class)
                 .newInstance(environment, databaseManager, domainManager);
@@ -180,7 +183,7 @@ public class AccessManager extends Manager implements Closeable {
     private final Map<String, Level> accesses = new HashMap<>();
 
     @PostConstruct
-    private void postConstructAccesses() throws SQLException, IOException, ReflectiveOperationException {
+    private void initAccesses() throws SQLException, IOException, ReflectiveOperationException {
         try {
             String key;
             String sql = "select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name";

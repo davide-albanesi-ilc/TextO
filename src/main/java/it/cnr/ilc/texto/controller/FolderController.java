@@ -26,8 +26,6 @@ public class FolderController extends EntityController<Folder> {
 
     @Autowired
     private FolderManager folderManager;
-    @Autowired
-    private ResourceManager resourceManager;
 
     @Override
     protected Class<Folder> entityClass() {
@@ -46,47 +44,11 @@ public class FolderController extends EntityController<Folder> {
         if (parent != null) {
             accessManager.checkAccess(parent, Action.WRITE);
         }
-    }
-
-    @Override
-    protected void preCreate(Folder folder) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (folder.getName() != null && resourceManager.exists(folder.getParent(), folder.getName())) {
-            throw new ManagerException("name exists");
+        if (folder.getParent() == null && !Action.CREATE.equals(action)) {
+            throw new ManagerException("home folder is final");
         }
     }
-
-    @Override
-    protected void preUpdateComplete(Folder previous, Folder folder) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (previous.getParent() == null) {
-            throw new ManagerException("unable to update home");
-        }
-        if (folder.getName() != null && resourceManager.exists(folder.getParent(), folder.getName())) {
-            throw new ManagerException("name exists");
-        }
-    }
-
-    @Override
-    protected void preUpdatePartial(Folder previous, Folder entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (previous.getParent() == null) {
-            throw new ManagerException("unable to update home");
-        }
-        if (entity.getParent() != null) {
-            if (resourceManager.exists(entity.getParent(), entity.getName() == null ? previous.getName() : entity.getName())) {
-                throw new ManagerException("name exists");
-            }
-        }
-        if (entity.getName() != null && resourceManager.exists(previous.getParent(), entity.getName())) {
-            throw new ManagerException("name exists");
-        }
-    }
-
-    @Override
-    protected void preRemove(Folder folder) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (folder.getParent() == null) {
-            throw new ManagerException("unable to remove home");
-        }
-    }
-
+    
     @GetMapping("{id}/path")
     public String path(@PathVariable("id") Long id) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         logManager.setMessage("get path of").appendMessage(entityClass().getSimpleName());

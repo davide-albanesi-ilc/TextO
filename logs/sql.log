@@ -1,1 +1,5 @@
-2023-12-11 19:34:36 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-12-22 14:53:02 : select * from `User` where id = 4 and status = 1
+2023-12-22 14:53:02 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2023-12-22 14:54:52 : select * from `User` where status = 1 and (name is not null)
+2023-12-22 14:55:01 : select * from `User` where status = 1 and (nameg is not null)
+2023-12-22 14:55:14 : select * from `User` where status = 1

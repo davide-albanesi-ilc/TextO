@@ -30,7 +30,7 @@ public final class DatabaseManager extends Manager implements Closeable {
     }
 
     @PostConstruct
-    private void postContruct() throws ClassNotFoundException {
+    private void initDatabase() throws ClassNotFoundException {
         Class.forName(environment.getProperty("database.driver"));
         connectionPool = new ConnectionPool(
                 environment.getProperty("database.url"),

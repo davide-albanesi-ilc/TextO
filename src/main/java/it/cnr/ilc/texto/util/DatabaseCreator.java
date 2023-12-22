@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import java.time.LocalDate;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 
 /**
  *
@@ -24,12 +27,16 @@ public class DatabaseCreator {
 
     static {
         SQL_TYPES.put(String.class, "varchar(255)");
+        SQL_TYPES.put(Boolean.class, "bool");
+        SQL_TYPES.put(Short.class, "smallint");
         SQL_TYPES.put(Integer.class, "int");
         SQL_TYPES.put(Long.class, "bigint");
+        SQL_TYPES.put(Float.class, "float");
+        SQL_TYPES.put(Double.class, "double");
+        SQL_TYPES.put(LocalDate.class, "date");
         SQL_TYPES.put(LocalDateTime.class, "datetime");
-        SQL_TYPES.put(Boolean.class, "bool");
-        SQL_TYPES.put(Entity.class, "bigint");
         SQL_TYPES.put(Enum.class, "varchar(20)");
+        SQL_TYPES.put(Entity.class, "bigint");
     }
 
     private final List<Class<? extends Entity>> entitiesClasses = new ArrayList<>();
@@ -160,9 +167,8 @@ public class DatabaseCreator {
 
     public static void main(String[] args) throws Exception {
         DatabaseCreator creator = new DatabaseCreator();
-        ScanningUtils.getClasses(Entity.class.getPackageName()).stream()
-                .filter(c -> c.getSuperclass() != null && c.getSuperclass().equals(Entity.class))
-                .forEach(c -> creator.addEntityClass(c));
+        Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(Entity.class.getPackageName()));
+        reflections.getSubTypesOf(Entity.class).stream().forEach(c -> creator.addEntityClass(c));
         String script = creator.getScript();
         System.out.println(script);
         System.out.println(creator.initAccess());

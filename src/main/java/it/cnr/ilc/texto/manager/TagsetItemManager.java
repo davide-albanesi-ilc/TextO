@@ -1,8 +1,6 @@
 package it.cnr.ilc.texto.manager;
 
-import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.TagsetItem;
-import java.sql.SQLException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,7 +16,7 @@ public class TagsetItemManager extends EntityManager<TagsetItem> {
     }
 
     @Override
-    public String getLog(TagsetItem tagsetItem) throws SQLException, ReflectiveOperationException, ManagerException {
+    public String getLog(TagsetItem tagsetItem) {
         return tagsetItem.getName() != null ? tagsetItem.getName() : "" + tagsetItem.getId();
     }
 

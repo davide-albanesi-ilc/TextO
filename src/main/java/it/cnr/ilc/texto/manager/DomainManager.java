@@ -6,15 +6,21 @@ import it.cnr.ilc.texto.domain.annotation.Final;
 import it.cnr.ilc.texto.domain.annotation.Matched;
 import it.cnr.ilc.texto.domain.annotation.Required;
 import it.cnr.ilc.texto.domain.annotation.Unique;
+import it.cnr.ilc.texto.manager.annotation.Check;
+import it.cnr.ilc.texto.manager.annotation.Trigger;
+import it.cnr.ilc.texto.manager.annotation.Trigger.Event;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,13 +28,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DomainManager extends Manager {
 
-    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     @Autowired
     protected DatabaseManager databaseManager;
@@ -45,7 +53,7 @@ public class DomainManager extends Manager {
         return descriptor;
     }
 
-    public <E extends Entity> List<E> load(Class<E> clazz) throws SQLException, ReflectiveOperationException, ManagerException {
+    public <E extends Entity> List<E> load(Class<E> clazz) throws SQLException, ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(descriptor.name))
@@ -58,7 +66,7 @@ public class DomainManager extends Manager {
         return cache.put(entities);
     }
 
-    public <E extends Entity> E load(Class<E> clazz, Long id) throws SQLException, ReflectiveOperationException, ManagerException {
+    public <E extends Entity> E load(Class<E> clazz, Long id) throws SQLException, ReflectiveOperationException {
         E entity = cache.get(clazz, id);
         if (entity != null) {
             return entity;
@@ -78,7 +86,7 @@ public class DomainManager extends Manager {
         return cache.put(entity);
     }
 
-    public <E extends Entity> List<E> load(Class<E> clazz, String sql) throws SQLException, ReflectiveOperationException, ManagerException {
+    public <E extends Entity> List<E> load(Class<E> clazz, String sql) throws SQLException, ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         List<E> entities = new ArrayList<>();
         List<Map<String, Object>> records = databaseManager.query(sql);
@@ -88,7 +96,7 @@ public class DomainManager extends Manager {
         return cache.put(entities);
     }
 
-    public <E extends Entity> E loadUnique(Class<E> clazz, String sql) throws SQLException, ReflectiveOperationException, ManagerException {
+    public <E extends Entity> E loadUnique(Class<E> clazz, String sql) throws SQLException, ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         List<Map<String, Object>> records = databaseManager.query(sql);
         if (records.isEmpty()) {
@@ -110,6 +118,7 @@ public class DomainManager extends Manager {
         entity.setTime(LocalDateTime.now());
         preCheck(entity);
         sqlInsert(entity);
+        executeTriggers(Event.POST_CREATE, null, entity);
         return cache.put(entity);
     }
 
@@ -118,7 +127,9 @@ public class DomainManager extends Manager {
         entity.setStatus(Status.VALID);
         entity.setTime(LocalDateTime.now());
         preCheck(entity);
+        executeTriggers(Event.PRE_CREATE, null, entity);
         sqlInsert(entity);
+        executeTriggers(Event.POST_CREATE, null, entity);
         cache.put(entity);
     }
 
@@ -128,63 +139,30 @@ public class DomainManager extends Manager {
         if (previous == null) {
             throw new ManagerException("entity not found or removed");
         }
-        StringBuilder sql = new StringBuilder();
-        sql.append("update ").append(quote(descriptor.name))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(entity.getId())
-                .append(" and status = ").append(Status.VALID.ordinal());
-        if (databaseManager.update(sql.toString()) != 1) {
-            throw new ManagerException("entity not found or removed");
-        }
         entity.setStatus(Status.VALID);
         entity.setTime(LocalDateTime.now());
         checkChanges(previous, entity);
         preCheck(previous, entity);
+        executeTriggers(Event.PRE_UPDATE, previous, entity);
+        sqlUpdate(descriptor.name, entity.getId());
         sqlInsert(entity);
+        executeTriggers(Event.POST_UPDATE, previous, entity);
         cache.put(entity);
     }
 
-    public <E extends Entity> void update(E previous, E entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        Descriptor<E> descriptor = getDesriptor((Class<E>) previous.getClass());
-        StringBuilder sql = new StringBuilder();
-        sql.append("update ").append(quote(descriptor.name))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(previous.getId())
-                .append(" and status = ").append(Status.VALID.ordinal());
-        if (databaseManager.update(sql.toString()) != 1) {
-            throw new ManagerException("entity not found or removed");
-        }
-        entity.setId(previous.getId());
-        entity.setStatus(Status.VALID);
-        entity.setTime(LocalDateTime.now());
-        merge(previous, entity);
-        checkChanges(previous, entity);
-        preCheck(previous, entity);
-        sqlInsert(entity);
-        cache.put(entity);
-    }
-
-    public <E extends Entity> E update(Class<E> clazz, Long id, E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+    public <E extends Entity> E update(Class<E> clazz, Long id, Map<String, Object> values) throws SQLException, ReflectiveOperationException, ManagerException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         E previous = load(clazz, id);
         if (previous == null) {
             throw new ManagerException("entity not found or removed");
         }
-        StringBuilder sql = new StringBuilder();
-        sql.append("update ").append(quote(descriptor.name))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(id)
-                .append(" and status = ").append(Status.VALID.ordinal());
-        if (databaseManager.update(sql.toString()) != 1) {
-            throw new ManagerException("entity not found or removed");
-        }
-        entity.setId(previous.getId());
-        entity.setStatus(Status.VALID);
-        entity.setTime(LocalDateTime.now());
-        merge(previous, entity);
+        E entity = merge(previous, values);
         checkChanges(previous, entity);
         preCheck(previous, entity);
+        executeTriggers(Event.PRE_UPDATE, previous, entity);
+        sqlUpdate(descriptor.name, id);
         sqlInsert(entity);
+        executeTriggers(Event.POST_UPDATE, previous, entity);
         return cache.put(entity);
     }
 
@@ -194,42 +172,34 @@ public class DomainManager extends Manager {
         if (previous == null) {
             throw new ManagerException("entity not found or removed");
         }
-        referenceCheck(entity);
-        StringBuilder sql = new StringBuilder();
-        sql.append("update ").append(quote(descriptor.name))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(entity.getId())
-                .append(" and status = ").append(Status.VALID.ordinal());
-        if (databaseManager.update(sql.toString()) != 1) {
-            throw new ManagerException("entity not found or removed");
-        }
         entity.setStatus(Status.REMOVED);
         entity.setTime(LocalDateTime.now());
+        referenceCheck(entity);
         preCheck(previous, entity);
+        executeTriggers(Event.PRE_REMOVE, previous, entity);
+        sqlUpdate(descriptor.name, entity.getId());
         sqlInsert(entity);
+        executeTriggers(Event.POST_REMOVE, previous, entity);
         cache.remove(entity);
     }
 
     public <E extends Entity> E remove(Class<E> clazz, Long id) throws SQLException, ReflectiveOperationException, ManagerException {
         Descriptor<E> descriptor = getDesriptor(clazz);
-        E entity = load(clazz, id);
-        if (entity == null) {
+        E previous = load(clazz, id);
+        if (previous == null) {
             throw new ManagerException("entity not found or removed");
         }
-        referenceCheck(entity);
-        StringBuilder sql = new StringBuilder();
-        sql.append("update ").append(quote(descriptor.name))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(entity.getId())
-                .append(" and status = ").append(Status.VALID.ordinal());
-        databaseManager.update(sql.toString());
-        entity.setStatus(Status.REMOVED);
-        entity.setTime(LocalDateTime.now());
-        sqlInsert(entity);
-        return cache.remove(entity);
+        previous.setStatus(Status.REMOVED);
+        previous.setTime(LocalDateTime.now());
+        referenceCheck(previous);
+        executeTriggers(Event.PRE_REMOVE, previous, previous);
+        sqlUpdate(descriptor.name, id);
+        sqlInsert(previous);
+        executeTriggers(Event.POST_REMOVE, previous, previous);
+        return cache.remove(previous);
     }
 
-    public <E extends Entity> List<E> history(Class<E> clazz, Long id) throws SQLException, ReflectiveOperationException, ManagerException {
+    public <E extends Entity> List<E> history(Class<E> clazz, Long id) throws SQLException, ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(descriptor.name))
@@ -256,16 +226,13 @@ public class DomainManager extends Manager {
             throw new SQLException("not unique query");
         }
         E previous = toEntity(records.get(0), descriptor);
-        sql = new StringBuilder();
-        sql.append("update ").append(quote(descriptor.name))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(entity.getId())
-                .append(" and status = ").append(Status.REMOVED.ordinal());
-        databaseManager.update(sql.toString());
         entity.setStatus(Status.VALID);
         entity.setTime(LocalDateTime.now());
         preCheck(previous, entity);
+        executeTriggers(Event.PRE_RESTORE, previous, entity);
+        sqlRestore(descriptor.name, entity.getId());
         sqlInsert(entity);
+        executeTriggers(Event.POST_RESTORE, previous, entity);
         cache.put(entity);
     }
 
@@ -281,21 +248,40 @@ public class DomainManager extends Manager {
         } else if (records.size() > 1) {
             throw new SQLException("not unique query");
         }
-        E entity = toEntity(records.get(0), descriptor);
-        sql = new StringBuilder();
-        sql.append("update ").append(quote(descriptor.name))
-                .append(" set status = ").append(Status.HISTORY.ordinal())
-                .append(" where id = ").append(entity.getId())
-                .append(" and status = ").append(Status.REMOVED.ordinal());
-        databaseManager.update(sql.toString());
-        entity.setStatus(Status.VALID);
-        entity.setTime(LocalDateTime.now());
-        sqlInsert(entity);
-        return cache.put(entity);
+        E previous = toEntity(records.get(0), descriptor);
+        previous.setStatus(Status.VALID);
+        previous.setTime(LocalDateTime.now());
+        sqlRestore(descriptor.name, id);
+        executeTriggers(Event.PRE_RESTORE, previous, previous);
+        sqlInsert(previous);
+        executeTriggers(Event.POST_RESTORE, previous, previous);
+        return cache.put(previous);
     }
 
     public void freeCache() {
         cache.clear();
+    }
+
+    private <E extends Entity> void sqlUpdate(String name, Long id) throws SQLException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("update ").append(quote(name))
+                .append(" set status = ").append(Status.HISTORY.ordinal())
+                .append(" where id = ").append(id)
+                .append(" and status = ").append(Status.VALID.ordinal());
+        if (databaseManager.update(sql.toString()) != 1) {
+            throw new SQLException("entity not found or removed");
+        }
+    }
+
+    private <E extends Entity> void sqlRestore(String name, Long id) throws SQLException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("update ").append(quote(name))
+                .append(" set status = ").append(Status.HISTORY.ordinal())
+                .append(" where id = ").append(id)
+                .append(" and status = ").append(Status.REMOVED.ordinal());
+        if (databaseManager.update(sql.toString()) != 1) {
+            throw new SQLException("entity not found or removed");
+        }
     }
 
     private <E extends Entity> void sqlInsert(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
@@ -353,10 +339,8 @@ public class DomainManager extends Manager {
                 sql = new StringBuilder();
                 sql.append("select count(id) from ").append(quote(descriptor.name))
                         .append(" where status = 1 and ")
-                        .append(quote(field.sqlField)).append(" = ").append(sqlValue(value));
-                if (entity.getId() != null) {
-                    sql.append(" and id <> ").append(entity.getId());
-                }
+                        .append(quote(field.sqlField)).append(" = ").append(sqlValue(value))
+                        .append(" and id <> ").append(entity.getId());
                 for (String group : field.getter.getAnnotation(Unique.class).group()) {
                     groupField = descriptor.fields.get(group);
                     if (groupField == null) {
@@ -375,16 +359,21 @@ public class DomainManager extends Manager {
                 }
             }
         }
+
+        executeChecks(previous, entity);
     }
 
     private <E extends Entity> void postCheck(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
         Descriptor<E> descriptor = getDesriptor((Class<E>) entity.getClass());
         StringBuilder sql;
         Object value;
+
         for (FieldDescriptor field : descriptor.fields.values()) {
-            if (Entity.class.isAssignableFrom(field.type)) {
+            if (Entity.class
+                    .isAssignableFrom(field.type)) {
                 value = field.getter.invoke(entity);
-                if (value != null) {
+                if (value
+                        != null) {
                     sql = new StringBuilder();
                     sql.append("select count(id) from ").append(quote(field.type))
                             .append(" where status = ").append(Status.VALID.ordinal())
@@ -406,33 +395,49 @@ public class DomainManager extends Manager {
                     sql.append("select count(").append(quote(field.sqlField)).append(") from ").append(quote(descriptor.name))
                             .append(" where status = ").append(Status.VALID.ordinal())
                             .append(" and ").append(quote(field.sqlField)).append(" = ").append(entity.getId());
-                    if (databaseManager.queryFirst(sql.toString(), Number.class).intValue() > 0) {
-                        throw new ManagerException("referenced by " + descriptor.name);
+
+                    if (databaseManager.queryFirst(sql.toString(), Number.class
+                    ).intValue() > 0) {
+                        throw new ManagerException(
+                                "referenced by " + descriptor.name);
                     }
                 }
             }
         }
     }
 
-    private <E extends Entity> void merge(E previous, E entity) throws ReflectiveOperationException {
+    private <E extends Entity> E merge(E previous, Map<String, Object> values) throws ReflectiveOperationException, ManagerException {
         Descriptor<E> descriptor = getDesriptor((Class<E>) previous.getClass());
-        Object currValue, newValue;
+        E entity = descriptor.constructor.newInstance();
+        entity.setId(previous.getId());
+        entity.setStatus(Status.VALID);
+        entity.setTime(LocalDateTime.now());
+        Object value;
         for (FieldDescriptor field : descriptor.fields.values()) {
-            currValue = field.getter.invoke(previous);
-            newValue = field.getter.invoke(entity);
-            if (newValue == null) {
-                field.setter.invoke(entity, currValue);
+            if (values.containsKey(field.name)) {
+                try {
+                    value = mapJsonToEntity(field, values.remove(field.name));
+                } catch (ClassCastException | DateTimeParseException e) {
+                    throw new ManagerException("invalid field " + field.name);
+                }
+            } else {
+                value = field.getter.invoke(previous);
             }
+            field.setter.invoke(entity, value);
         }
+        for (String field : values.keySet()) {
+            throw new ManagerException("invalid field " + field);
+        }
+        return entity;
     }
 
     private <E extends Entity> void checkChanges(E previous, E entity) throws ReflectiveOperationException, ManagerException {
         Descriptor<E> descriptor = getDesriptor((Class<E>) previous.getClass());
-        Object currValue, newValue;
+        Object previousValue, newValue;
         for (FieldDescriptor field : descriptor.fields.values()) {
-            currValue = field.getter.invoke(previous);
+            previousValue = field.getter.invoke(previous);
             newValue = field.getter.invoke(entity);
-            if (!Objects.equals(currValue, newValue)) {
+            if (!Objects.equals(previousValue, newValue)) {
                 return;
             }
         }
@@ -445,7 +450,9 @@ public class DomainManager extends Manager {
             String sql = "update _sequence set id = id + 1";
             databaseManager.update(sql, connection);
             sql = "select id from _sequence";
-            long id = databaseManager.queryFirst(sql, Long.class, connection);
+
+            long id = databaseManager.queryFirst(sql, Long.class,
+                     connection);
             connection.commit();
             return id;
         } catch (SQLException e) {
@@ -462,35 +469,25 @@ public class DomainManager extends Manager {
         }
     }
 
-    private <E extends Entity> E toEntity(Map<String, Object> record, Descriptor<E> descriptor) throws ReflectiveOperationException, ManagerException {
+    private <E extends Entity> E toEntity(Map<String, Object> record, Descriptor<E> descriptor) throws ReflectiveOperationException {
         E entity = descriptor.constructor.newInstance();
         entity.setId(((Number) record.remove("id")).longValue());
         entity.setStatus(Status.values()[((Number) record.remove("status")).intValue()]);
         entity.setTime((LocalDateTime) record.remove("time"));
         Object value;
-        Entity reference;
         for (FieldDescriptor field : descriptor.fields.values()) {
             value = record.remove(field.sqlField);
-            if (value != null) {
-                if (Entity.class.isAssignableFrom(field.type)) {
-                    reference = (Entity) field.type.getConstructor().newInstance();
-                    reference.setId(((Number) value).longValue());
-                    value = reference;
-                } else if (Enum.class.isAssignableFrom(field.type)) {
-                    value = Enum.valueOf(field.type, (String) value);
-                }
-                field.setter.invoke(entity, value);
-            }
+            field.setter.invoke(entity, mapSqlToEntity(field, value));
         }
         return entity;
     }
 
-    public <E extends Entity> E toEntity(Map<String, Object> record, Class<E> clazz) throws ReflectiveOperationException, ManagerException {
+    public <E extends Entity> E toEntity(Map<String, Object> record, Class<E> clazz) throws ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         return toEntity(record, descriptor);
     }
 
-    public <E extends Entity> List<E> toEntity(List<Map<String, Object>> records, Class<E> clazz) throws ReflectiveOperationException, ManagerException {
+    public <E extends Entity> List<E> toEntity(List<Map<String, Object>> records, Class<E> clazz) throws ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         List<E> list = new ArrayList<>();
         for (Map<String, Object> record : records) {
@@ -531,6 +528,7 @@ public class DomainManager extends Manager {
             list.add(toMap(entity, descriptor));
         }
         return list;
+
     }
 
     private class Descriptor<E extends Entity> {
@@ -539,6 +537,8 @@ public class DomainManager extends Manager {
         private final String name;
         private final Constructor<E> constructor;
         private final Map<String, FieldDescriptor> fields = new LinkedHashMap<>();
+        private final TreeSet<CheckInfo<E>> checks = new TreeSet<>();
+        private final Map<Event, TreeSet<TriggerInfo<E>>> triggers = new LinkedHashMap<>();
 
         private Descriptor(Class<E> clazz) throws ReflectiveOperationException {
             this.clazz = clazz;
@@ -558,7 +558,6 @@ public class DomainManager extends Manager {
                 fields.put(fieldDescriptor.name, fieldDescriptor);
             }
         }
-
     }
 
     private class FieldDescriptor {
@@ -579,20 +578,201 @@ public class DomainManager extends Manager {
     }
 
     public static String sqlValue(Object value) throws ReflectiveOperationException {
-        if (value instanceof Entity entity) {
+        if (value instanceof String string) {
+            return "'" + string.replaceAll("'", "''") + "'";
+        } else if (value instanceof Boolean) {
+            return value.toString();
+        } else if (value instanceof Number) {
+            return value.toString();
+        } else if (value instanceof LocalDate localDate) {
+            return "'" + localDate.format(DATE_FORMATTER) + "'";
+        } else if (value instanceof LocalDateTime localDateTime) {
+            return "'" + localDateTime.format(DATETIME_FORMATTER) + "'";
+        } else if (value instanceof Entity entity) {
             return entity.getId().toString();
         } else if (value instanceof Enum enumeration) {
             return "'" + enumeration.name() + "'";
-        } else if (value instanceof Number) {
-            return value.toString();
-        } else if (value instanceof Boolean) {
-            return value.toString();
-        } else if (value instanceof String string) {
-            return "'" + string.replaceAll("'", "''") + "'";
-        } else if (value instanceof LocalDateTime localDateTime) {
-            return "'" + localDateTime.format(DATETIME_FORMATTER) + "'";
         } else {
             throw new ReflectiveOperationException("unsupported type " + value.getClass());
+        }
+    }
+
+    private <E extends Entity> Object mapSqlToEntity(FieldDescriptor field, Object value) throws ReflectiveOperationException {
+        if (value == null) {
+            return null;
+
+        }
+        if (String.class
+                .isAssignableFrom(field.type)) {
+            return (String) value;
+        } else if (Boolean.class
+                .isAssignableFrom(field.type)) {
+            return (Boolean) value;
+        } else if (Short.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).shortValue();
+        } else if (Integer.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).intValue();
+        } else if (Long.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).longValue();
+        } else if (Float.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).floatValue();
+        } else if (Double.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).doubleValue();
+        } else if (LocalDate.class
+                .isAssignableFrom(field.type)) {
+            return ((Date) value).toLocalDate();
+        } else if (LocalDateTime.class
+                .isAssignableFrom(field.type)) {
+            return (LocalDateTime) value;
+        } else if (Enum.class
+                .isAssignableFrom(field.type)) {
+            return Enum.valueOf(field.type,
+                    (String) value);
+        } else if (Entity.class
+                .isAssignableFrom(field.type)) {
+            Entity reference = (Entity) field.type.getConstructor().newInstance();
+
+            reference.setId(
+                    ((Number) value).longValue());
+            return reference;
+        } else {
+            throw new ReflectiveOperationException("unsupported type " + value.getClass());
+        }
+    }
+
+    private <E extends Entity> Object mapJsonToEntity(FieldDescriptor field, Object value) throws ReflectiveOperationException {
+        if (value == null) {
+            return null;
+
+        }
+        if (String.class
+                .isAssignableFrom(field.type)) {
+            return (String) value;
+        } else if (Boolean.class
+                .isAssignableFrom(field.type)) {
+            return (Boolean) value;
+        } else if (Short.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).shortValue();
+        } else if (Integer.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).intValue();
+        } else if (Long.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).longValue();
+        } else if (Float.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).floatValue();
+        } else if (Double.class
+                .isAssignableFrom(field.type)) {
+            return ((Number) value).doubleValue();
+        } else if (LocalDate.class
+                .isAssignableFrom(field.type)) {
+            return LocalDate.parse(
+                    (String) value);
+        } else if (LocalDateTime.class
+                .isAssignableFrom(field.type)) {
+            return LocalDateTime.parse(
+                    (String) value);
+        } else if (Enum.class
+                .isAssignableFrom(field.type)) {
+            return Enum.valueOf(field.type,
+                    (String) value);
+        } else if (Entity.class
+                .isAssignableFrom(field.type)) {
+            Long id = ((Number) ((Map) value).get("id")).longValue();
+            Entity entity = (Entity) field.type.getConstructor().newInstance();
+
+            entity.setId(id);
+            return entity;
+        } else {
+            throw new ReflectiveOperationException("unsupported type " + value.getClass());
+
+        }
+    }
+
+    private class CheckInfo<E extends Entity> implements Comparable<CheckInfo> {
+
+        private final Object object;
+        private final Method method;
+        private final Integer order;
+
+        public CheckInfo(Object object, Method method, Integer order) {
+            this.object = object;
+            this.method = method;
+            this.order = order;
+        }
+
+        @Override
+        public int compareTo(CheckInfo other) {
+            if (this.order.equals(other.order)) {
+                return 1;
+            } else {
+                return this.order.compareTo(other.order);
+            }
+        }
+
+    }
+
+    <E extends Entity> void addCheck(Class<E> clazz, Check annotation, Object object, Method method) throws ReflectiveOperationException {
+        Descriptor<E> descriptor = getDesriptor(clazz);
+        descriptor.checks.add(new CheckInfo<>(object, method, annotation.order()));
+    }
+
+    private <E extends Entity> void executeChecks(E previous, E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+        Descriptor<E> descriptor = getDesriptor((Class<E>) (entity != null ? entity.getClass() : previous.getClass()));
+        for (CheckInfo<E> check : descriptor.checks) {
+            check.method.invoke(check.object, previous, entity);
+
+        }
+    }
+
+    private class TriggerInfo<E extends Entity> implements Comparable<TriggerInfo> {
+
+        private final Object object;
+        private final Method method;
+        private final Integer order;
+
+        public TriggerInfo(Object object, Method method, Integer order) {
+            this.object = object;
+            this.method = method;
+            this.order = order;
+        }
+
+        @Override
+        public int compareTo(TriggerInfo other) {
+            if (this.order.equals(other.order)) {
+                return 1;
+            } else {
+                return this.order.compareTo(other.order);
+            }
+        }
+
+    }
+
+    <E extends Entity> void addTrigger(Class<E> clazz, Trigger annotation, Object object, Method method) throws ReflectiveOperationException {
+        Descriptor<E> descriptor = getDesriptor(clazz);
+        TreeSet<TriggerInfo<E>> triggers = descriptor.triggers.get(annotation.event());
+        if (triggers == null) {
+            triggers = new TreeSet<>();
+            descriptor.triggers.put(annotation.event(), triggers);
+        }
+        triggers.add(new TriggerInfo<>(object, method, annotation.order()));
+    }
+
+    private <E extends Entity> void executeTriggers(Event event, E previous, E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+        Descriptor<E> descriptor = getDesriptor((Class<E>) (entity != null ? entity.getClass() : previous.getClass()));
+        TreeSet<TriggerInfo<E>> triggers = descriptor.triggers.get(event);
+        if (triggers != null) {
+            for (TriggerInfo<E> trigger : triggers) {
+                trigger.method.invoke(trigger.object, previous, entity);
+
+            }
         }
     }
 
@@ -660,4 +840,5 @@ public class DomainManager extends Manager {
             threadMap.remove(Thread.currentThread());
         }
     }
+
 }

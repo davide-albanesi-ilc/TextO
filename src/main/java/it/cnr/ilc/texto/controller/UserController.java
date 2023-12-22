@@ -43,16 +43,17 @@ public class UserController extends EntityController<User> {
     }
 
     @Override
-    protected void postCreate(User user) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        folderManager.createHome(user);
+    protected void checkAccess(User user, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException, ManagerException {
+        if (Action.REMOVE.equals(action) && accessManager.contains(user)) {
+            throw new ManagerException("unable to remove connected user");
+        }
+        accessManager.checkAccess(user, action);
     }
 
-    @Override
     protected void preRemove(User user) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         if (accessManager.contains(user)) {
             throw new ManagerException("unable to remove connected user");
         }
-        folderManager.removeHome(user);
     }
 
     @GetMapping("me")

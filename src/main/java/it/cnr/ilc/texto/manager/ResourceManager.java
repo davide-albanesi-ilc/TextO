@@ -7,6 +7,7 @@ import it.cnr.ilc.texto.domain.Folder;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import it.cnr.ilc.texto.manager.annotation.Check;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.PreparedStatement;
@@ -18,6 +19,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ResourceManager extends EntityManager<Resource> {
 
+    @Lazy
     @Autowired
     private FolderManager folderManager;
 
@@ -36,13 +39,20 @@ public class ResourceManager extends EntityManager<Resource> {
     }
 
     @Override
-    public String getLog(Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
+    public String getLog(Resource resource) throws SQLException {
         StringBuilder path = new StringBuilder();
         if (resource.getParent() != null) {
             path.append(folderManager.getPath(resource.getParent())).append("/");
         }
         path.append(resource.getName());
         return path.toString();
+    }
+
+    @Check
+    public void exists(Resource previous, Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (folderManager.exists(resource.getParent(), resource.getName())) {
+            throw new ManagerException("name exsists");
+        }
     }
 
     public String getPath(Resource resource) throws SQLException {

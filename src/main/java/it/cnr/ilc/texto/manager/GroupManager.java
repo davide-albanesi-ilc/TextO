@@ -1,8 +1,6 @@
 package it.cnr.ilc.texto.manager;
 
-import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.Group;
-import java.sql.SQLException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,7 +16,7 @@ public class GroupManager extends EntityManager<Group> {
     }
 
     @Override
-    public String getLog(Group group) throws SQLException, ReflectiveOperationException, ManagerException {
+    public String getLog(Group group) {
         return group.getName() != null ? group.getName() : "" + group.getId();
     }
 

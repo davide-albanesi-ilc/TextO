@@ -42,15 +42,8 @@ public class AnnotationController extends EntityController<Annotation> {
     }
 
     @Override
-    protected void preRemove(Annotation annotation) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        annotationFeatureManager.removeAnnotationFeatures(annotation);
-    }
-
-    @Override
     protected void checkAccess(Annotation annotation, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException, ManagerException {
-        if (action.equals(Action.CREATE) || action.equals(Action.REMOVE)) {
-            accessManager.checkAccess(annotation, action);
-        }
+        accessManager.checkAccess(annotation, action);
         Layer layer = annotation.getLayer();
         if (layer != null) {
             accessManager.checkAccess(layer, action.equals(Action.READ) ? Action.READ : Action.WRITE);

@@ -8,6 +8,7 @@ import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
+import it.cnr.ilc.texto.manager.annotation.Check;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,17 +27,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class FolderManager extends EntityManager<Folder> {
 
+    public static final int MAX_PATH_DEPTH = 24;
+
+    @Lazy
+    @Autowired
+    private ResourceManager resourceManager;
+
     @Override
     protected Class<Folder> entityClass() {
         return Folder.class;
     }
 
     @Override
-    public String getLog(Folder folder) throws SQLException, ReflectiveOperationException, ManagerException {
+    public String getLog(Folder folder) throws SQLException {
         return getPath(folder);
     }
 
-    public static final int MAX_PATH_DEPTH = 24;
+    @Check
+    public void exists(Folder previous, Folder folder) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (folder.getParent() != null && resourceManager.exists(folder.getParent(), folder.getName())) {
+            throw new ManagerException("name exsists");
+        }
+    }
 
     public String getPath(Folder folder) throws SQLException {
         if (folder == null) {
