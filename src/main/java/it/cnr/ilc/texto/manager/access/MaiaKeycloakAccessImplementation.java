@@ -5,6 +5,7 @@ import it.cnr.ilc.texto.domain.Role;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.DatabaseManager;
 import it.cnr.ilc.texto.manager.DomainManager;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import org.springframework.core.env.Environment;
  *
  * @author oakgen
  */
-public class MaiaKeycloakAccessImplementation extends JWTExternAlccessImplementation {
+public class MaiaKeycloakAccessImplementation extends JWTExternAccessImplementation {
 
     private final Map<String, String> matches = new HashMap<>();
 
@@ -57,7 +58,7 @@ public class MaiaKeycloakAccessImplementation extends JWTExternAlccessImplementa
     protected void afterCreationUser(User user) throws Exception {
         Long id = domainManager.newId();
         StringBuilder sql = new StringBuilder();
-        sql.append("insert into ").append(DomainManager.quote(Folder.class))
+        sql.append("insert into ").append(quote(Folder.class))
                 .append(" (id, status, time, name, user_id)")
                 .append(" values (").append(id).append(", 1, now(), '")
                 .append(user.getUsername()).append("', ").append(user.getId()).append(")");

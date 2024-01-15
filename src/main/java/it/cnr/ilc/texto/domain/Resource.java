@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.domain;
 
+import it.cnr.ilc.texto.domain.annotation.Matched;
 import it.cnr.ilc.texto.domain.annotation.Unique;
 import it.cnr.ilc.texto.domain.annotation.Required;
 
@@ -25,8 +26,9 @@ public class Resource extends Entity implements Userable, Listable {
     }
 
     @Override
-    @Unique
+    @Unique(group = {"parent"})
     @Required
+    @Matched(".+")
     public String getName() {
         return name;
     }

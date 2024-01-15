@@ -1,7 +1,7 @@
 package it.cnr.ilc.texto.domain;
 
-import it.cnr.ilc.texto.domain.annotation.Final;
-import it.cnr.ilc.texto.domain.annotation.Required;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -9,35 +9,102 @@ import it.cnr.ilc.texto.domain.annotation.Required;
  */
 public class Test extends Entity {
 
-    private String rock;
-    private String paper;
-    private String scissor;
+    public enum TestEnum {
+        ONE,
+        TWO,
+        THREE
+    }
+
+    private String stringt;
+    private Boolean booleant;
+    private Short shortt;
+    private Integer integert;
+    private Long longt;
+    private Float floatt;
+    private Double doublet;
+    private LocalDate datet;
+    private LocalDateTime datetimet;
+    private TestEnum enumt;
     private Test next;
 
-    @Required
-    public String getRock() {
-        return rock;
+    public String getStringt() {
+        return stringt;
     }
 
-    public void setRock(String rock) {
-        this.rock = rock;
+    public void setStringt(String stringt) {
+        this.stringt = stringt;
     }
 
-    @Final
-    public String getPaper() {
-        return paper;
+    public Boolean getBooleant() {
+        return booleant;
     }
 
-    public void setPaper(String paper) {
-        this.paper = paper;
+    public void setBooleant(Boolean booleant) {
+        this.booleant = booleant;
     }
 
-    public String getScissor() {
-        return scissor;
+    public Short getShortt() {
+        return shortt;
     }
 
-    public void setScissor(String scissor) {
-        this.scissor = scissor;
+    public void setShortt(Short shortt) {
+        this.shortt = shortt;
+    }
+
+    public Integer getIntegert() {
+        return integert;
+    }
+
+    public void setIntegert(Integer integert) {
+        this.integert = integert;
+    }
+
+    public Long getLongt() {
+        return longt;
+    }
+
+    public void setLongt(Long longt) {
+        this.longt = longt;
+    }
+
+    public Float getFloatt() {
+        return floatt;
+    }
+
+    public void setFloatt(Float floatt) {
+        this.floatt = floatt;
+    }
+
+    public Double getDoublet() {
+        return doublet;
+    }
+
+    public void setDoublet(Double doublet) {
+        this.doublet = doublet;
+    }
+
+    public LocalDate getDatet() {
+        return datet;
+    }
+
+    public void setDatet(LocalDate datet) {
+        this.datet = datet;
+    }
+
+    public LocalDateTime getDatetimet() {
+        return datetimet;
+    }
+
+    public void setDatetimet(LocalDateTime datetimet) {
+        this.datetimet = datetimet;
+    }
+
+    public TestEnum getEnumt() {
+        return enumt;
+    }
+
+    public void setEnumt(TestEnum enumt) {
+        this.enumt = enumt;
     }
 
     public Test getNext() {

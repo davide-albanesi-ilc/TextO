@@ -2,6 +2,7 @@ package it.cnr.ilc.texto.domain;
 
 import it.cnr.ilc.texto.domain.annotation.Unique;
 import it.cnr.ilc.texto.domain.annotation.Ignore;
+import it.cnr.ilc.texto.domain.annotation.Matched;
 import it.cnr.ilc.texto.domain.annotation.Required;
 
 /**
@@ -27,6 +28,7 @@ public class User extends Entity implements Userable {
 
     @Unique
     @Required
+    @Matched("^[a-zA-Z0-9@._-]{4,20}$")
     public String getUsername() {
         return username;
     }

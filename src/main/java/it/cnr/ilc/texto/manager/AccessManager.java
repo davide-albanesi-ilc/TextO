@@ -7,8 +7,10 @@ import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.Group;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.domain.Userable;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.Closeable;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -26,7 +28,7 @@ import org.springframework.stereotype.Component;
  * @author oakgen
  */
 @Component
-public class AccessManager extends Manager {
+public class AccessManager extends Manager implements Closeable {
 
     @Autowired
     private DatabaseManager databaseManager;
@@ -35,13 +37,17 @@ public class AccessManager extends Manager {
 
     private AccessImplementation implementation;
 
+    private AccessManager() {
+    }
+
     @PostConstruct
-    private void postConstruct() throws ReflectiveOperationException, SQLException {
+    private void initImplementation() throws ReflectiveOperationException, SQLException {
         Class clazz = Class.forName(environment.getProperty("access.implementation.class"));
         implementation = (AccessImplementation) clazz.getConstructor(Environment.class, DatabaseManager.class, DomainManager.class)
                 .newInstance(environment, databaseManager, domainManager);
     }
 
+    @Override
     public void close() {
         implementation.getSessions().stream().forEach(s -> s.getTimer().cancel());
     }
@@ -177,7 +183,7 @@ public class AccessManager extends Manager {
     private final Map<String, Level> accesses = new HashMap<>();
 
     @PostConstruct
-    private void postConstructAccesses() throws SQLException, IOException, ReflectiveOperationException {
+    private void initAccesses() throws SQLException, IOException, ReflectiveOperationException {
         try {
             String key;
             String sql = "select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name";
@@ -246,7 +252,7 @@ public class AccessManager extends Manager {
         String field = name.substring(0, 1).toLowerCase().concat(name.substring(1)).concat("_id");
         String table = name.concat(User.class.getSimpleName());
         StringBuilder sql = new StringBuilder();
-        sql.append("select * from ").append(DomainManager.quote(table))
+        sql.append("select * from ").append(quote(table))
                 .append(" where ").append(field).append(" = ").append(entity.getId())
                 .append(" and user_id = ").append(user.getId())
                 .append(" and action = '").append(action.name()).append("'")
@@ -256,9 +262,9 @@ public class AccessManager extends Manager {
         } else {
             table = name.concat(Group.class.getSimpleName());
             sql = new StringBuilder();
-            sql.append("select * from ").append(DomainManager.quote(table)).append(" e ")
+            sql.append("select * from ").append(quote(table)).append(" e ")
                     .append("join `GroupUser` u on e.group_id = e.group_id and e.status = 1 and u.status = 1 ")
-                    .append("where e.").append(DomainManager.quote(field)).append(" = 1 and e.group_id = 1 and u.user_id = 1");
+                    .append("where e.").append(quote(field)).append(" = 1 and e.group_id = 1 and u.user_id = 1");
             return databaseManager.queryFirst(sql.toString()) != null;
         }
     }

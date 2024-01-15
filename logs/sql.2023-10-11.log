@@ -1,1 +1,0 @@
-2023-10-11 08:49:05 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name

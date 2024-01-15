@@ -1,8 +1,6 @@
 package it.cnr.ilc.texto.manager;
 
-import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.Layer;
-import java.sql.SQLException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,7 +16,7 @@ public class LayerManager extends EntityManager<Layer> {
     }
 
     @Override
-    public String getLog(Layer layer) throws SQLException, ReflectiveOperationException, ManagerException {
+    public String getLog(Layer layer) {
         return layer.getName() != null ? layer.getName() : "" + layer.getId();
     }
 

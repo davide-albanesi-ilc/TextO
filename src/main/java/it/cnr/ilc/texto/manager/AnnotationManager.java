@@ -6,6 +6,7 @@ import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
+import it.cnr.ilc.texto.manager.annotation.Trigger;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,6 +32,9 @@ public class AnnotationManager extends EntityManager<Annotation> {
     private AccessManager accessManager;
     @Autowired
     private ResourceManager resourceManager;
+    @Lazy
+    @Autowired
+    private AnnotationFeatureManager annotationFeatureManager;
 
     @Override
     protected Class<Annotation> entityClass() {
@@ -37,8 +42,13 @@ public class AnnotationManager extends EntityManager<Annotation> {
     }
 
     @Override
-    public String getLog(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
+    public String getLog(Annotation annotation) {
         return (annotation.getLayer() != null ? annotation.getLayer().getName() : "" + annotation.getId()) + "[" + annotation.getStart() + "-" + annotation.getEnd() + "]";
+    }
+
+    @Trigger(event = Trigger.Event.PRE_REMOVE)
+    public void removeAnnotationFeatures(Annotation previous, Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
+        annotationFeatureManager.removeAnnotationFeatures(annotation);
     }
 
     public List<Map<String, Object>> getAnnotations(Resource resource, Offset offset) throws SQLException, ReflectiveOperationException, ManagerException {

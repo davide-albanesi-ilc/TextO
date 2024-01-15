@@ -6,7 +6,6 @@ import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.manager.AnnotationManager;
 import it.cnr.ilc.texto.manager.EntityManager;
-import it.cnr.ilc.texto.manager.FolderManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.manager.ResourceManager;
@@ -37,8 +36,6 @@ public class ResourceController extends EntityController<Resource> {
     @Autowired
     private ResourceManager resourceManager;
     @Autowired
-    private FolderManager folderManager;
-    @Autowired
     private AnnotationManager annotationManager;
 
     @Override
@@ -57,42 +54,6 @@ public class ResourceController extends EntityController<Resource> {
         Folder parent = resource.getParent();
         if (parent == null) {
             accessManager.checkAccess(parent, Action.WRITE);
-        }
-    }
-
-    @Override
-    protected void preCreate(Resource resource) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (resource.getName() != null && resource.getName().isBlank()) {
-            throw new ManagerException("blank name");
-        }
-        if (resourceManager.exists(resource.getParent(), resource.getName())) {
-            throw new ManagerException("name exists");
-        }
-    }
-
-    @Override
-    protected void preUpdateComplete(Resource previous, Resource resource) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (resource.getName() != null && resource.getName().isBlank()) {
-            throw new ManagerException("blank name");
-        }
-        if (resourceManager.exists(resource.getParent(), resource.getName())) {
-            throw new ManagerException("name exists");
-        }
-    }
-
-    @Override
-    protected void preUpdatePartial(Resource previous, Resource entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        accessManager.checkAccess(previous, Action.WRITE);
-        if (entity.getName() != null && entity.getName().isBlank()) {
-            throw new ManagerException("blank name");
-        }
-        if (entity.getParent() != null) {
-            if (folderManager.exists(entity.getParent(), entity.getName() == null ? previous.getName() : entity.getName())) {
-                throw new ManagerException("name exsists");
-            }
-        }
-        if (entity.getName() != null && resourceManager.exists(previous.getParent(), entity.getName())) {
-            throw new ManagerException("name exsists");
         }
     }
 

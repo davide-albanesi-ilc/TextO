@@ -2,7 +2,6 @@ package it.cnr.ilc.texto.util;
 
 import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.annotation.Required;
-import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -13,6 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import java.time.LocalDate;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
 
 /**
  *
@@ -24,12 +27,16 @@ public class DatabaseCreator {
 
     static {
         SQL_TYPES.put(String.class, "varchar(255)");
+        SQL_TYPES.put(Boolean.class, "bool");
+        SQL_TYPES.put(Short.class, "smallint");
         SQL_TYPES.put(Integer.class, "int");
         SQL_TYPES.put(Long.class, "bigint");
+        SQL_TYPES.put(Float.class, "float");
+        SQL_TYPES.put(Double.class, "double");
+        SQL_TYPES.put(LocalDate.class, "date");
         SQL_TYPES.put(LocalDateTime.class, "datetime");
-        SQL_TYPES.put(Boolean.class, "bool");
-        SQL_TYPES.put(Entity.class, "bigint");
         SQL_TYPES.put(Enum.class, "varchar(20)");
+        SQL_TYPES.put(Entity.class, "bigint");
     }
 
     private final List<Class<? extends Entity>> entitiesClasses = new ArrayList<>();
@@ -136,7 +143,7 @@ public class DatabaseCreator {
     }
 
     private String initAccess() throws IOException {
-        List<String> lines = Files.readAllLines(Path.of("doc/accesses.txt"));
+        List<String> lines = Files.readAllLines(Path.of("docs/accesses.txt"));
         StringBuilder builder = new StringBuilder();
         for (String line : lines) {
             if (!line.trim().isEmpty()) {
@@ -149,19 +156,19 @@ public class DatabaseCreator {
     private String initEntities() {
         StringBuilder builder = new StringBuilder();
         builder.append("insert into Role (id, status, time, name) values (1, 1, now(), 'Administrator');\n")
-                .append("insert into Role (id, status, time, name) values (2, 1, now(), 'Annotator');\n")
+                .append("insert into Role (id, status, time, name) values (2, 1, now(), 'Editor');\n")
                 .append("insert into Role (id, status, time, name) values (3, 1, now(), 'Viewer');\n")
                 .append("insert into User (id, status, time, name, username, role_id, enabled) values (4, 1, now(), 'Administrator', 'admin', 1, true);\n")
-                .append("insert into _credential (user_id, password) values (4, upper(sha1('ilcPisa13-')));\n")
-                .append("update _sequence set id = 4;");
+                .append("insert into _credential (user_id, password) values (4, upper(sha1('Maia$23-')));\n")
+                .append("insert into Folder (id, status, time, name, user_id) values (5, 1, now(), 'Administrator', 4);\n")
+                .append("update _sequence set id = 5;");
         return builder.toString();
     }
 
     public static void main(String[] args) throws Exception {
         DatabaseCreator creator = new DatabaseCreator();
-        ScanningUtils.getClasses(Entity.class.getPackageName()).stream()
-                .filter(c -> c.getSuperclass() != null && c.getSuperclass().equals(Entity.class))
-                .forEach(c -> creator.addEntityClass(c));
+        Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(Entity.class.getPackageName()));
+        reflections.getSubTypesOf(Entity.class).stream().forEach(c -> creator.addEntityClass(c));
         String script = creator.getScript();
         System.out.println(script);
         System.out.println(creator.initAccess());

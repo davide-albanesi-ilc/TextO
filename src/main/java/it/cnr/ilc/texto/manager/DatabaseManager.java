@@ -2,6 +2,7 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.util.ConnectionPool;
 import jakarta.annotation.PostConstruct;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -19,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public final class DatabaseManager extends Manager {
+public final class DatabaseManager extends Manager implements Closeable {
 
     private final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
     private final Map<Thread, Connection> connectionMap = new ConcurrentHashMap<>();
@@ -29,7 +30,7 @@ public final class DatabaseManager extends Manager {
     }
 
     @PostConstruct
-    private void postContruct() throws ClassNotFoundException {
+    private void initDatabase() throws ClassNotFoundException {
         Class.forName(environment.getProperty("database.driver"));
         connectionPool = new ConnectionPool(
                 environment.getProperty("database.url"),
@@ -38,6 +39,7 @@ public final class DatabaseManager extends Manager {
                 environment.getProperty("database.ping", "select null"));
     }
 
+    @Override
     public void close() {
         connectionPool.closeConnections();
     }

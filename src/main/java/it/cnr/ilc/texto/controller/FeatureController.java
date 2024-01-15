@@ -43,27 +43,6 @@ public class FeatureController extends EntityController<Feature> {
         }
     }
 
-    @Override
-    protected void preCreate(Feature feature) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (FeatureType.TAGSET.equals(feature.getType()) && feature.getTagset() == null) {
-            throw new ManagerException("tagset required");
-        }
-    }
-
-    @Override
-    protected void preUpdateComplete(Feature previous, Feature feature) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (FeatureType.TAGSET.equals(feature.getType()) && feature.getTagset() == null) {
-            throw new ManagerException("tagset required");
-        }
-    }
-
-    @Override
-    protected void preUpdatePartial(Feature previous, Feature feature) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (FeatureType.TAGSET.equals(feature.getType()) && feature.getTagset() == null && previous.getTagset() == null) {
-            throw new ManagerException("tagset required");
-        }
-    }
-
     @GetMapping("types")
     public FeatureType[] types() throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         logManager.setMessage("get feature types");

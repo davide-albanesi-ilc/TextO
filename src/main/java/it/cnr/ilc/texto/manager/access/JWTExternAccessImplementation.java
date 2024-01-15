@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.DatabaseManager;
 import it.cnr.ilc.texto.manager.DomainManager;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import java.util.Base64;
 import java.util.Map;
@@ -13,11 +14,11 @@ import org.springframework.core.env.Environment;
  *
  * @author oakgen
  */
-public abstract class JWTExternAlccessImplementation extends ExternalAccessImplementation {
+public abstract class JWTExternAccessImplementation extends ExternalAccessImplementation {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public JWTExternAlccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager entityManager) {
+    public JWTExternAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager entityManager) {
         super(environment, databaseManager, entityManager);
     }
 
@@ -35,7 +36,7 @@ public abstract class JWTExternAlccessImplementation extends ExternalAccessImple
         token = new String(Base64.getUrlDecoder().decode(token));
         Map<String, Object> payload = mapper.readValue(token, Map.class);
         StringBuilder sql = new StringBuilder();
-        sql.append("select * from ").append(DomainManager.quote(User.class))
+        sql.append("select * from ").append(quote(User.class))
                 .append(" where status = 1 and username = '").append(retrieveUsername(payload)).append("'");
         User user = domainManager.loadUnique(User.class, sql.toString());
         if (user == null) {

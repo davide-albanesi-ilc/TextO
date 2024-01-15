@@ -1,12 +1,13 @@
 package it.cnr.ilc.texto.manager;
 
-import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,8 +17,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
 
+    @Lazy
     @Autowired
     private AnnotationManager annotationManager;
+    @Lazy
     @Autowired
     private FeatureManager featureManager;
 
@@ -38,7 +41,8 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
     public List<AnnotationFeature> getAnnotationFeatures(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(AnnotationFeature.class))
-                .append(" where status = 1 and annotation_id = ").append(annotation.getId());
+                .append(" where status = 1")
+                .append(" and annotation_id = ").append(annotation.getId());
         return load(sql.toString());
     }
 

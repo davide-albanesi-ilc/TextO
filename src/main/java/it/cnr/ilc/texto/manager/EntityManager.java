@@ -2,8 +2,13 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.Entity;
+import it.cnr.ilc.texto.manager.annotation.Check;
+import it.cnr.ilc.texto.manager.annotation.Trigger;
+import jakarta.annotation.PostConstruct;
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class EntityManager<E extends Entity> extends Manager {
@@ -18,19 +23,37 @@ public abstract class EntityManager<E extends Entity> extends Manager {
 
     public abstract String getLog(E entity) throws SQLException, ReflectiveOperationException, ManagerException;
 
-    public List<E> load() throws SQLException, ReflectiveOperationException, ManagerException {
+    @PostConstruct
+    private void registerChecks() throws ReflectiveOperationException {
+        for (Method method : getClass().getMethods()) {
+            for (Check check : method.getAnnotationsByType(Check.class)) {
+                domainManager.addCheck(entityClass(), check, this, method);
+            }
+        }
+    }
+
+    @PostConstruct
+    private void registerTriggers() throws ReflectiveOperationException {
+        for (Method method : getClass().getMethods()) {
+            for (Trigger trigger : method.getAnnotationsByType(Trigger.class)) {
+                domainManager.addTrigger(entityClass(), trigger, this, method);
+            }
+        }
+    }
+
+    public List<E> load() throws SQLException, ReflectiveOperationException {
         return domainManager.load(entityClass());
     }
 
-    public E load(Long id) throws SQLException, ReflectiveOperationException, ManagerException {
+    public E load(Long id) throws SQLException, ReflectiveOperationException {
         return domainManager.load(entityClass(), id);
     }
 
-    public List<E> load(String sql) throws SQLException, ReflectiveOperationException, ManagerException {
+    public List<E> load(String sql) throws SQLException, ReflectiveOperationException {
         return domainManager.load(entityClass(), sql);
     }
 
-    public E loadUnique(String sql) throws SQLException, ReflectiveOperationException, ManagerException {
+    public E loadUnique(String sql) throws SQLException, ReflectiveOperationException {
         return domainManager.loadUnique(entityClass(), sql);
     }
 
@@ -46,12 +69,8 @@ public abstract class EntityManager<E extends Entity> extends Manager {
         domainManager.update(entity);
     }
 
-    public void update(E previous, E entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        domainManager.update(previous, entity);
-    }
-
-    public E update(Long id, E entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        return domainManager.update(entityClass(), id, entity);
+    public E update(Long id, Map<String, Object> values) throws SQLException, ReflectiveOperationException, ManagerException {
+        return domainManager.update(entityClass(), id, values);
     }
 
     public void remove(E entity) throws SQLException, ReflectiveOperationException, ManagerException {

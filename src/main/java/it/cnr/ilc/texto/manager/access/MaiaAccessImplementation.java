@@ -5,6 +5,8 @@ import it.cnr.ilc.texto.domain.Role;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.DatabaseManager;
 import it.cnr.ilc.texto.manager.DomainManager;
+import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.core.env.Environment;
@@ -13,13 +15,18 @@ import org.springframework.core.env.Environment;
  *
  * @author oakgen
  */
-public class MaiaAccessImplementation extends JWTExternAlccessImplementation {
+public class MaiaAccessImplementation extends JWTExternAccessImplementation {
 
     private final Map<String, String> matches = new HashMap<>();
 
     public MaiaAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager entityManager) {
         super(environment, databaseManager, entityManager);
-        matches.put("AMMINISTRATORE", "Administrator");
+        matches.put("ADMINISTRATOR", "Administrator");
+        matches.put("SUPERVISOR", "Editor");
+        matches.put("LEXICOGRAPHER", "Viewer");
+        matches.put("ANNOTATOR", "Editor");
+        matches.put("LEXICOGRAPHER_ANNOTATOR", "Editor");
+        matches.put("VIEWER", "Viewer");
     }
 
     @Override
@@ -34,7 +41,7 @@ public class MaiaAccessImplementation extends JWTExternAlccessImplementation {
         user.setName((String) payload.get("name"));
         user.setEmail((String) payload.get("email"));
         String roleName = matches.get((String) payload.get("role"));
-        String sql = "select * from Role where status = 1 and name = '" + roleName + "'";
+        String sql = "select * from Role where status = 1 and name = " + sqlValue(roleName);
         Role role = domainManager.loadUnique(Role.class, sql);
         user.setRole(role);
         user.setEnabled(Boolean.TRUE);
@@ -43,13 +50,15 @@ public class MaiaAccessImplementation extends JWTExternAlccessImplementation {
 
     @Override
     protected void afterCreationUser(User user) throws Exception {
-        Long id = domainManager.newId();
-        StringBuilder sql = new StringBuilder();
-        sql.append("insert into ").append(DomainManager.quote(Folder.class))
-                .append(" (id, status, time, name, user_id)")
-                .append(" values (").append(id).append(", 1, now(), '")
-                .append(user.getUsername()).append("', ").append(user.getId()).append(")");
-        databaseManager.update(sql.toString());
+        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+            Long id = domainManager.newId();
+            StringBuilder sql = new StringBuilder();
+            sql.append("insert into ").append(quote(Folder.class))
+                    .append(" (id, status, time, name, user_id)")
+                    .append(" values (").append(id).append(", 1, now(), '")
+                    .append(user.getUsername()).append("', ").append(user.getId()).append(")");
+            databaseManager.update(sql.toString());
+        }
     }
 
 }
