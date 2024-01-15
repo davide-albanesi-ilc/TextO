@@ -107,7 +107,7 @@ public abstract class EntityController<E extends Entity> extends Controller {
         return entity;
     }
 
-    @DeleteMapping("")
+    @DeleteMapping("remove")
     public Map<String, Object> remove(@RequestBody E entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         logManager.setMessage("remove").appendMessage(entityClass());
         E previous = entityManager().load(entity.getId());
@@ -122,7 +122,7 @@ public abstract class EntityController<E extends Entity> extends Controller {
         return domainManager.toMap(entity);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("{id}/remove")
     public Map<String, Object> remove(@PathVariable("id") Long id) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         logManager.setMessage("remove").appendMessage(entityClass());
         E previous = entityManager().load(id);
