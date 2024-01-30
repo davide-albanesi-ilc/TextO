@@ -25,6 +25,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -107,6 +108,10 @@ public class Application implements WebMvcConfigurer {
                     PostMapping postMapping = method.getAnnotation(PostMapping.class);
                     if (postMapping != null) {
                         paths.add(path + "/" + postMapping.value()[0]);
+                    }
+                    PutMapping putMapping = method.getAnnotation(PutMapping.class);
+                    if (putMapping != null) {
+                        paths.add(path + "/" + putMapping.value()[0]);
                     }
                     DeleteMapping deleteMapping = method.getAnnotation(DeleteMapping.class);
                     if (deleteMapping != null) {

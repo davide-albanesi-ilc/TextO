@@ -7,6 +7,7 @@ import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.manager.annotation.Trigger;
+import it.cnr.ilc.texto.manager.annotation.Trigger.Event;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
@@ -46,7 +47,7 @@ public class AnnotationManager extends EntityManager<Annotation> {
         return (annotation.getLayer() != null ? annotation.getLayer().getName() : "" + annotation.getId()) + "[" + annotation.getStart() + "-" + annotation.getEnd() + "]";
     }
 
-    @Trigger(event = Trigger.Event.PRE_REMOVE)
+    @Trigger(event = Event.PRE_REMOVE)
     public void removeAnnotationFeatures(Annotation previous, Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
         annotationFeatureManager.removeAnnotationFeatures(annotation);
     }
