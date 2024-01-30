@@ -17,6 +17,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -367,13 +368,10 @@ public class DomainManager extends Manager {
         Descriptor<E> descriptor = getDesriptor((Class<E>) entity.getClass());
         StringBuilder sql;
         Object value;
-
         for (FieldDescriptor field : descriptor.fields.values()) {
-            if (Entity.class
-                    .isAssignableFrom(field.type)) {
+            if (Entity.class.isAssignableFrom(field.type)) {
                 value = field.getter.invoke(entity);
-                if (value
-                        != null) {
+                if (value != null) {
                     sql = new StringBuilder();
                     sql.append("select count(id) from ").append(quote(field.type))
                             .append(" where status = ").append(Status.VALID.ordinal())
@@ -395,11 +393,8 @@ public class DomainManager extends Manager {
                     sql.append("select count(").append(quote(field.sqlField)).append(") from ").append(quote(descriptor.name))
                             .append(" where status = ").append(Status.VALID.ordinal())
                             .append(" and ").append(quote(field.sqlField)).append(" = ").append(entity.getId());
-
-                    if (databaseManager.queryFirst(sql.toString(), Number.class
-                    ).intValue() > 0) {
-                        throw new ManagerException(
-                                "referenced by " + descriptor.name);
+                    if (databaseManager.queryFirst(sql.toString(), Number.class).intValue() > 0) {
+                        throw new ManagerException("referenced by " + descriptor.name);
                     }
                 }
             }
@@ -450,9 +445,7 @@ public class DomainManager extends Manager {
             String sql = "update _sequence set id = id + 1";
             databaseManager.update(sql, connection);
             sql = "select id from _sequence";
-
-            long id = databaseManager.queryFirst(sql, Long.class,
-                     connection);
+            long id = databaseManager.queryFirst(sql, Long.class, connection);
             connection.commit();
             return id;
         } catch (SQLException e) {
@@ -473,7 +466,13 @@ public class DomainManager extends Manager {
         E entity = descriptor.constructor.newInstance();
         entity.setId(((Number) record.remove("id")).longValue());
         entity.setStatus(Status.values()[((Number) record.remove("status")).intValue()]);
-        entity.setTime((LocalDateTime) record.remove("time"));
+        try {
+            entity.setTime((LocalDateTime) record.get("time"));
+        } catch (ClassCastException e) {
+            entity.setTime(((Timestamp) record.get("time")).toLocalDateTime());
+        } finally {
+            record.remove("time");
+        }
         Object value;
         for (FieldDescriptor field : descriptor.fields.values()) {
             value = record.remove(field.sqlField);
@@ -481,7 +480,7 @@ public class DomainManager extends Manager {
         }
         return entity;
     }
-
+    
     public <E extends Entity> E toEntity(Map<String, Object> record, Class<E> clazz) throws ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         return toEntity(record, descriptor);
@@ -600,45 +599,32 @@ public class DomainManager extends Manager {
     private <E extends Entity> Object mapSqlToEntity(FieldDescriptor field, Object value) throws ReflectiveOperationException {
         if (value == null) {
             return null;
-
         }
-        if (String.class
-                .isAssignableFrom(field.type)) {
+        if (String.class.isAssignableFrom(field.type)) {
             return (String) value;
-        } else if (Boolean.class
-                .isAssignableFrom(field.type)) {
+        } else if (Boolean.class.isAssignableFrom(field.type)) {
             return (Boolean) value;
-        } else if (Short.class
-                .isAssignableFrom(field.type)) {
+        } else if (Byte.class.isAssignableFrom(field.type)) {
+            return ((Number) value).byteValue();
+        } else if (Short.class.isAssignableFrom(field.type)) {
             return ((Number) value).shortValue();
-        } else if (Integer.class
-                .isAssignableFrom(field.type)) {
+        } else if (Integer.class.isAssignableFrom(field.type)) {
             return ((Number) value).intValue();
-        } else if (Long.class
-                .isAssignableFrom(field.type)) {
+        } else if (Long.class.isAssignableFrom(field.type)) {
             return ((Number) value).longValue();
-        } else if (Float.class
-                .isAssignableFrom(field.type)) {
+        } else if (Float.class.isAssignableFrom(field.type)) {
             return ((Number) value).floatValue();
-        } else if (Double.class
-                .isAssignableFrom(field.type)) {
+        } else if (Double.class.isAssignableFrom(field.type)) {
             return ((Number) value).doubleValue();
-        } else if (LocalDate.class
-                .isAssignableFrom(field.type)) {
-            return ((Date) value).toLocalDate();
-        } else if (LocalDateTime.class
-                .isAssignableFrom(field.type)) {
-            return (LocalDateTime) value;
-        } else if (Enum.class
-                .isAssignableFrom(field.type)) {
-            return Enum.valueOf(field.type,
-                    (String) value);
-        } else if (Entity.class
-                .isAssignableFrom(field.type)) {
+        } else if (LocalDate.class.isAssignableFrom(field.type)) {
+            return value instanceof LocalDate localdate ? localdate : ((Date) value).toLocalDate();
+        } else if (LocalDateTime.class.isAssignableFrom(field.type)) {
+            return value instanceof LocalDateTime localdatetime ? localdatetime : ((Timestamp) value).toLocalDateTime();
+        } else if (Enum.class.isAssignableFrom(field.type)) {
+            return Enum.valueOf(field.type, (String) value);
+        } else if (Entity.class.isAssignableFrom(field.type)) {
             Entity reference = (Entity) field.type.getConstructor().newInstance();
-
-            reference.setId(
-                    ((Number) value).longValue());
+            reference.setId(((Number) value).longValue());
             return reference;
         } else {
             throw new ReflectiveOperationException("unsupported type " + value.getClass());
@@ -648,51 +634,36 @@ public class DomainManager extends Manager {
     private <E extends Entity> Object mapJsonToEntity(FieldDescriptor field, Object value) throws ReflectiveOperationException {
         if (value == null) {
             return null;
-
         }
-        if (String.class
-                .isAssignableFrom(field.type)) {
+        if (String.class.isAssignableFrom(field.type)) {
             return (String) value;
-        } else if (Boolean.class
-                .isAssignableFrom(field.type)) {
+        } else if (Boolean.class.isAssignableFrom(field.type)) {
             return (Boolean) value;
-        } else if (Short.class
-                .isAssignableFrom(field.type)) {
+        } else if (Byte.class.isAssignableFrom(field.type)) {
+            return ((Number) value).byteValue();
+        } else if (Short.class.isAssignableFrom(field.type)) {
             return ((Number) value).shortValue();
-        } else if (Integer.class
-                .isAssignableFrom(field.type)) {
+        } else if (Integer.class.isAssignableFrom(field.type)) {
             return ((Number) value).intValue();
-        } else if (Long.class
-                .isAssignableFrom(field.type)) {
+        } else if (Long.class.isAssignableFrom(field.type)) {
             return ((Number) value).longValue();
-        } else if (Float.class
-                .isAssignableFrom(field.type)) {
+        } else if (Float.class.isAssignableFrom(field.type)) {
             return ((Number) value).floatValue();
-        } else if (Double.class
-                .isAssignableFrom(field.type)) {
+        } else if (Double.class.isAssignableFrom(field.type)) {
             return ((Number) value).doubleValue();
-        } else if (LocalDate.class
-                .isAssignableFrom(field.type)) {
-            return LocalDate.parse(
-                    (String) value);
-        } else if (LocalDateTime.class
-                .isAssignableFrom(field.type)) {
-            return LocalDateTime.parse(
-                    (String) value);
-        } else if (Enum.class
-                .isAssignableFrom(field.type)) {
-            return Enum.valueOf(field.type,
-                    (String) value);
-        } else if (Entity.class
-                .isAssignableFrom(field.type)) {
+        } else if (LocalDate.class.isAssignableFrom(field.type)) {
+            return LocalDate.parse((String) value);
+        } else if (LocalDateTime.class.isAssignableFrom(field.type)) {
+            return LocalDateTime.parse((String) value);
+        } else if (Enum.class.isAssignableFrom(field.type)) {
+            return Enum.valueOf(field.type, (String) value);
+        } else if (Entity.class.isAssignableFrom(field.type)) {
             Long id = ((Number) ((Map) value).get("id")).longValue();
             Entity entity = (Entity) field.type.getConstructor().newInstance();
-
             entity.setId(id);
             return entity;
         } else {
             throw new ReflectiveOperationException("unsupported type " + value.getClass());
-
         }
     }
 
@@ -728,7 +699,6 @@ public class DomainManager extends Manager {
         Descriptor<E> descriptor = getDesriptor((Class<E>) (entity != null ? entity.getClass() : previous.getClass()));
         for (CheckInfo<E> check : descriptor.checks) {
             check.method.invoke(check.object, previous, entity);
-
         }
     }
 

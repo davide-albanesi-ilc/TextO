@@ -28,6 +28,7 @@ public class DatabaseCreator {
     static {
         SQL_TYPES.put(String.class, "varchar(255)");
         SQL_TYPES.put(Boolean.class, "bool");
+        SQL_TYPES.put(Byte.class, "tinyint");
         SQL_TYPES.put(Short.class, "smallint");
         SQL_TYPES.put(Integer.class, "int");
         SQL_TYPES.put(Long.class, "bigint");
@@ -169,8 +170,7 @@ public class DatabaseCreator {
         DatabaseCreator creator = new DatabaseCreator();
         Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(Entity.class.getPackageName()));
         reflections.getSubTypesOf(Entity.class).stream().forEach(c -> creator.addEntityClass(c));
-        String script = creator.getScript();
-        System.out.println(script);
+        System.out.println(creator.getScript());
         System.out.println(creator.initAccess());
         System.out.println(creator.initEntities());
     }
