@@ -3,13 +3,10 @@ package it.cnr.ilc.texto.manager.access;
 import it.cnr.ilc.texto.domain.Folder;
 import it.cnr.ilc.texto.domain.Role;
 import it.cnr.ilc.texto.domain.User;
-import it.cnr.ilc.texto.manager.DatabaseManager;
-import it.cnr.ilc.texto.manager.DomainManager;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.core.env.Environment;
 
 /**
  *
@@ -19,8 +16,9 @@ public class MaiaAccessImplementation extends JWTExternAccessImplementation {
 
     private final Map<String, String> matches = new HashMap<>();
 
-    public MaiaAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager entityManager) {
-        super(environment, databaseManager, entityManager);
+    @Override
+    protected void init() throws Exception {
+        super.init();
         matches.put("ADMINISTRATOR", "Administrator");
         matches.put("SUPERVISOR", "Editor");
         matches.put("LEXICOGRAPHER", "Viewer");
@@ -50,7 +48,7 @@ public class MaiaAccessImplementation extends JWTExternAccessImplementation {
 
     @Override
     protected void afterCreationUser(User user) throws Exception {
-        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+        if (!Boolean.TRUE.equals(environment.getProperty("folder.shared-home", Boolean.class))) {
             Long id = domainManager.newId();
             StringBuilder sql = new StringBuilder();
             sql.append("insert into ").append(quote(Folder.class))

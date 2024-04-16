@@ -25,7 +25,6 @@ public class TagsetController extends EntityController<Tagset> {
 
     @Autowired
     private TagsetManager tagsetManager;
-
     @Override
     protected Class<Tagset> entityClass() {
         return Tagset.class;

@@ -3,8 +3,6 @@ package it.cnr.ilc.texto.controller;
 import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
-import it.cnr.ilc.texto.domain.Layer;
-import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.manager.AnnotationFeatureManager;
 import it.cnr.ilc.texto.manager.AnnotationManager;
 import it.cnr.ilc.texto.manager.EntityManager;
@@ -44,19 +42,17 @@ public class AnnotationController extends EntityController<Annotation> {
     @Override
     protected void checkAccess(Annotation annotation, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException, ManagerException {
         accessManager.checkAccess(annotation, action);
-        Layer layer = annotation.getLayer();
-        if (layer != null) {
-            accessManager.checkAccess(layer, action.equals(Action.READ) ? Action.READ : Action.WRITE);
+        if (annotation.getLayer() != null) {
+            accessManager.checkAccess(annotation.getLayer(), action.equals(Action.READ) ? Action.READ : Action.WRITE);
         }
-        Resource resource = annotation.getResource();
-        if (resource != null) {
-            accessManager.checkAccess(resource, action.equals(Action.READ) ? Action.READ : Action.WRITE);
+        if (annotation.getResource() != null) {
+            accessManager.checkAccess(annotation.getResource(), action.equals(Action.READ) ? Action.READ : Action.WRITE);
         }
     }
 
     @GetMapping("{id}/features")
     public List<AnnotationFeature> features(@PathVariable("id") Long id) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        logManager.setMessage("get rows of " + entityClass().getSimpleName());
+        logManager.setMessage("get features of " + entityClass().getSimpleName());
         Annotation annotation = annotationManager.load(id);
         if (annotation == null) {
             logManager.appendMessage("" + id);
@@ -64,6 +60,6 @@ public class AnnotationController extends EntityController<Annotation> {
         }
         logManager.appendMessage(annotationManager.getLog(annotation));
         checkAccess(annotation, Action.READ);
-        return annotationFeatureManager.getAnnotationFeatures(annotation);
+        return annotationFeatureManager.load(annotation);
     }
 }

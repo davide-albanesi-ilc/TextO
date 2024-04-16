@@ -14,7 +14,7 @@
     <appender name="Controller" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.application}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">        
-            <fileNamePattern>${log.application}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${log.application}.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -27,7 +27,7 @@
      <appender name="Sql" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.sql}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">        
-            <fileNamePattern>${log.sql}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${log.sql}.%d{yyyy-MM-dd}</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>

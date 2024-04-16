@@ -29,33 +29,37 @@ public abstract class Controller {
     @Autowired
     protected LogManager logManager;
     @Autowired
-    protected DatabaseManager databaseManager;
+    private DatabaseManager databaseManager;
 
     @ExceptionHandler(AuthorizationException.class)
     public ResponseEntity<String> handleException(AuthorizationException exception) throws SQLException {
-        databaseManager.rollbackAndReleaseConnection();
+        databaseManager.releaseRollbackConnection();
         logManager.appendMessage(exception.getMessage());
+        monitorManager.setResult(exception);
         return new ResponseEntity(exception.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<String> handleException(ForbiddenException exception) throws SQLException {
-        databaseManager.rollbackAndReleaseConnection();
+        databaseManager.releaseRollbackConnection();
         logManager.appendMessage(exception.getMessage());
+        monitorManager.setResult(exception);
         return new ResponseEntity(exception.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(InterruptedException.class)
     public ResponseEntity<String> handleException(InterruptedException exception) throws SQLException {
-        databaseManager.rollbackAndReleaseConnection();
+        databaseManager.releaseRollbackConnection();
         logManager.appendMessage("interrupted");
+        monitorManager.setResult(exception);
         return new ResponseEntity(exception.getMessage(), HttpStatus.RESET_CONTENT);
     }
 
     @ExceptionHandler(ManagerException.class)
     public ResponseEntity<String> handleException(ManagerException exception) throws SQLException {
-        databaseManager.rollbackAndReleaseConnection();
+        databaseManager.releaseRollbackConnection();
         logManager.appendMessage(exception.getMessage());
+        monitorManager.setResult(exception);
         return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

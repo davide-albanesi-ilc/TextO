@@ -1,0 +1,71 @@
+System	Administrator	READ	FULL
+System	Administrator	WRITE	FULL
+
+Role	Administrator	READ	FULL
+Role	Editor	READ	FULL
+Role	Viewer	READ	FULL
+
+User	Administrator	READ	FULL
+User	Administrator	WRITE	FULL
+User	Administrator	CREATE	FULL
+User	Administrator	REMOVE	FULL
+User	Editor	READ	MINE
+User	Editor	WRITE	MINE
+User	Viewer	READ	MINE
+User	Viewer	WRITE	MINE
+
+Group	Administrator	READ	FULL
+Group	Administrator	WRITE	FULL
+Group	Administrator	CREATE	FULL
+Group	Administrator	REMOVE	FULL
+Group	Editor	READ	FULL
+Group	Viewer	READ	FULL
+
+Folder	Administrator	READ	FULL
+Folder	Administrator	WRITE	FULL
+Folder	Administrator	CREATE	FULL
+Folder	Administrator	REMOVE	FULL
+Folder	Editor	READ	FULL
+Folder	Editor	WRITE	FULL
+Folder	Editor	CREATE	MINE
+Folder	Editor	REMOVE	MINE
+Folder	Viewer	READ	FULL
+
+Resource	Administrator	READ	FULL
+Resource	Administrator	WRITE	FULL
+Resource	Administrator	CREATE	FULL
+Resource	Administrator	REMOVE	FULL
+Resource	Editor	READ	FULL
+Resource	Editor	WRITE	FULL
+Resource	Editor	CREATE	MINE
+Resource	Editor	REMOVE	MINE
+Resource	Viewer	READ	FULL
+
+Annotation	Administrator	READ	FULL
+Annotation	Administrator	WRITE	FULL
+Annotation	Administrator	CREATE	FULL
+Annotation	Administrator	REMOVE	FULL
+Annotation	Editor	READ	FULL
+Annotation	Editor	WRITE	MINE
+Annotation	Editor	CREATE	MINE
+Annotation	Editor	REMOVE	MINE
+Annotation	Viewer	READ	FULL
+
+Layer	Administrator	READ	FULL
+Layer	Administrator	WRITE	FULL
+Layer	Administrator	CREATE	FULL
+Layer	Administrator	REMOVE	FULL
+Layer	Editor	READ	FULL
+Layer	Viewer	READ	FULL
+
+Tagset	Administrator	READ	FULL
+Tagset	Administrator	WRITE	FULL
+Tagset	Administrator	CREATE	FULL
+Tagset	Administrator	REMOVE	FULL
+Tagset	Editor	READ	FULL
+Tagset	Viewer	READ	FULL
+
+Test	Administrator	READ	FULL
+Test	Administrator	WRITE	FULL
+Test	Administrator	CREATE	FULL
+Test	Administrator	REMOVE	FULL

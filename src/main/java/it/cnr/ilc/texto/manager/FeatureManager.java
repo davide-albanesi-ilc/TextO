@@ -23,6 +23,9 @@ public class FeatureManager extends EntityManager<Feature> {
     @Lazy
     @Autowired
     private TagsetManager tagsetManager;
+    @Lazy
+    @Autowired
+    private LayerManager layerManager;
 
     @Override
     protected Class<Feature> entityClass() {
@@ -30,8 +33,13 @@ public class FeatureManager extends EntityManager<Feature> {
     }
 
     @Override
-    public String getLog(Feature feature) {
-        return feature.getName() != null ? feature.getName() : "" + feature.getId();
+    public String getLog(Feature feature) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (feature.getLayer() == null || feature.getName() == null) {
+            return "" + feature.getId();
+        } else {
+            return layerManager.getLog(layerManager.load(feature.getLayer().getId())) + " "
+                    + feature.getName();
+        }
     }
 
     @Trigger(event = Event.PRE_CREATE)

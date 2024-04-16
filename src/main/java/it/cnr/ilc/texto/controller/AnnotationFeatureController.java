@@ -1,7 +1,6 @@
 package it.cnr.ilc.texto.controller;
 
 import it.cnr.ilc.texto.domain.Action;
-import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
 import it.cnr.ilc.texto.manager.AnnotationFeatureManager;
 import it.cnr.ilc.texto.manager.EntityManager;
@@ -37,9 +36,8 @@ public class AnnotationFeatureController extends EntityController<AnnotationFeat
 
     @Override
     protected void checkAccess(AnnotationFeature annotationFeature, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException, ManagerException {
-        Annotation annotation = annotationFeature.getAnnotation();
-        if (annotation != null) {
-            annotationController.checkAccess(annotation, action.equals(Action.READ) ? Action.READ : Action.WRITE);
+        if (annotationFeature.getAnnotation() != null) {
+            annotationController.checkAccess(annotationFeature.getAnnotation(), action.equals(Action.READ) ? Action.READ : Action.WRITE);
         }
     }
 

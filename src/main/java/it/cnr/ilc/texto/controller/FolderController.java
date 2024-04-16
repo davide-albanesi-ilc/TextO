@@ -6,7 +6,6 @@ import it.cnr.ilc.texto.manager.EntityManager;
 import it.cnr.ilc.texto.manager.FolderManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
-import it.cnr.ilc.texto.manager.ResourceManager;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -39,16 +38,15 @@ public class FolderController extends EntityController<Folder> {
 
     @Override
     protected void checkAccess(Folder folder, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException, ManagerException {
-        super.checkAccess(folder, action);
-        Folder parent = folder.getParent();
-        if (parent != null) {
-            accessManager.checkAccess(parent, Action.WRITE);
+        accessManager.checkAccess(folder, action);
+        if (folder.getParent() != null && (Action.CREATE.equals(action) || Action.REMOVE.equals(action))) {
+            accessManager.checkAccess(folder.getParent(), action);
         }
-        if (folder.getParent() == null && !Action.CREATE.equals(action)) {
+        if (folder.getParent() == null && !Action.READ.equals(action)) {
             throw new ManagerException("home folder is final");
         }
     }
-    
+
     @GetMapping("{id}/path")
     public String path(@PathVariable("id") Long id) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         logManager.setMessage("get path of").appendMessage(entityClass().getSimpleName());

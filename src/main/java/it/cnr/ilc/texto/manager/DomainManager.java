@@ -41,6 +41,8 @@ public class DomainManager extends Manager {
 
     @Autowired
     protected DatabaseManager databaseManager;
+    @Autowired
+    protected MonitorManager monitorManager;
 
     private final Map<Class, Descriptor> descriptors = new HashMap<>();
     private final Cache cache = new Cache();
@@ -59,8 +61,8 @@ public class DomainManager extends Manager {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(descriptor.name))
                 .append(" where status = ").append(Status.VALID.ordinal());
-        List<E> entities = new ArrayList<>();
         List<Map<String, Object>> records = databaseManager.query(sql.toString());
+        List<E> entities = new ArrayList<>(records.size());
         for (Map<String, Object> record : records) {
             entities.add(toEntity(record, descriptor));
         }
@@ -89,8 +91,8 @@ public class DomainManager extends Manager {
 
     public <E extends Entity> List<E> load(Class<E> clazz, String sql) throws SQLException, ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
-        List<E> entities = new ArrayList<>();
         List<Map<String, Object>> records = databaseManager.query(sql);
+        List<E> entities = new ArrayList<>(records.size());
         for (Map<String, Object> record : records) {
             entities.add(toEntity(record, descriptor));
         }
@@ -132,6 +134,21 @@ public class DomainManager extends Manager {
         sqlInsert(entity);
         executeTriggers(Event.POST_CREATE, null, entity);
         cache.put(entity);
+    }
+
+    public <E extends Entity> void create(List<E> entities) throws SQLException, ReflectiveOperationException, ManagerException {
+        long id = newId(entities.size());
+        for (E entity : entities) {
+            entity.setId(id++);
+            entity.setStatus(Status.VALID);
+            entity.setTime(LocalDateTime.now());
+            preCheck(entity);
+            executeTriggers(Event.PRE_CREATE, null, entity);
+            sqlInsert(entity);
+            executeTriggers(Event.POST_CREATE, null, entity);
+            cache.put(entity);
+            monitorManager.next();
+        }
     }
 
     public <E extends Entity> void update(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
@@ -286,6 +303,15 @@ public class DomainManager extends Manager {
     }
 
     private <E extends Entity> void sqlInsert(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+        String sql = getSqlInsert(entity);
+        try {
+            databaseManager.update(sql);
+        } catch (SQLIntegrityConstraintViolationException e) {
+            postCheck(entity);
+        }
+    }
+
+    private <E extends Entity> String getSqlInsert(E entity) throws ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor((Class<E>) entity.getClass());
         StringBuilder sql = new StringBuilder();
         StringBuilder values = new StringBuilder();
@@ -303,11 +329,7 @@ public class DomainManager extends Manager {
             }
         }
         sql.append(") values (").append(values).append(")");
-        try {
-            databaseManager.update(sql.toString());
-        } catch (SQLIntegrityConstraintViolationException e) {
-            postCheck(entity);
-        }
+        return sql.toString();
     }
 
     private <E extends Entity> void preCheck(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
@@ -360,7 +382,6 @@ public class DomainManager extends Manager {
                 }
             }
         }
-
         executeChecks(previous, entity);
     }
 
@@ -440,14 +461,21 @@ public class DomainManager extends Manager {
     }
 
     public synchronized long newId() throws SQLException {
+        return newId(1);
+    }
+
+    public synchronized long newId(int amount) throws SQLException {
+        if (amount <= 0) {
+            throw new SQLException("invalid amount id number");
+        }
         Connection connection = databaseManager.createConnection();
         try {
-            String sql = "update _sequence set id = id + 1";
+            String sql = "update _sequence set id = id + " + amount;
             databaseManager.update(sql, connection);
             sql = "select id from _sequence";
             long id = databaseManager.queryFirst(sql, Long.class, connection);
             connection.commit();
-            return id;
+            return id - amount;
         } catch (SQLException e) {
             try {
                 connection.rollback();
@@ -480,7 +508,7 @@ public class DomainManager extends Manager {
         }
         return entity;
     }
-    
+
     public <E extends Entity> E toEntity(Map<String, Object> record, Class<E> clazz) throws ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor(clazz);
         return toEntity(record, descriptor);
@@ -527,7 +555,6 @@ public class DomainManager extends Manager {
             list.add(toMap(entity, descriptor));
         }
         return list;
-
     }
 
     private class Descriptor<E extends Entity> {
@@ -695,7 +722,7 @@ public class DomainManager extends Manager {
         descriptor.checks.add(new CheckInfo<>(object, method, annotation.order()));
     }
 
-    private <E extends Entity> void executeChecks(E previous, E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+    private <E extends Entity> void executeChecks(E previous, E entity) throws ReflectiveOperationException {
         Descriptor<E> descriptor = getDesriptor((Class<E>) (entity != null ? entity.getClass() : previous.getClass()));
         for (CheckInfo<E> check : descriptor.checks) {
             check.method.invoke(check.object, previous, entity);

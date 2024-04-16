@@ -38,7 +38,7 @@ public class ApplicationInterceptor implements HandlerInterceptor {
         if (!request.getMethod().equals(RequestMethod.OPTIONS.name())) {
             logManager.logMessage(ex);
             monitorManager.endRequest();
+            accessManager.endRequest();
         }
-        accessManager.endRequest();
     }
 }

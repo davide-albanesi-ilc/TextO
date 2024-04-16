@@ -99,23 +99,27 @@ public class Application implements WebMvcConfigurer {
         reflections.getSubTypesOf(Controller.class).stream().forEach(clazz -> {
             RequestMapping requestMapping = (RequestMapping) clazz.getAnnotation(RequestMapping.class);
             if (requestMapping != null) {
-                String path = "/" + requestMapping.value()[0];
+                String mapping, path = "/" + requestMapping.value()[0];
                 for (Method method : clazz.getMethods()) {
                     GetMapping getMapping = method.getAnnotation(GetMapping.class);
                     if (getMapping != null) {
-                        paths.add(path + "/" + getMapping.value()[0]);
+                        mapping = getMapping.value()[0];
+                        paths.add(path + (mapping.isEmpty() ? "" : ("/" + mapping)));
                     }
                     PostMapping postMapping = method.getAnnotation(PostMapping.class);
                     if (postMapping != null) {
-                        paths.add(path + "/" + postMapping.value()[0]);
+                        mapping = postMapping.value()[0];
+                        paths.add(path + (mapping.isEmpty() ? "" : ("/" + mapping)));
                     }
                     PutMapping putMapping = method.getAnnotation(PutMapping.class);
                     if (putMapping != null) {
-                        paths.add(path + "/" + putMapping.value()[0]);
+                        mapping = putMapping.value()[0];
+                        paths.add(path + (mapping.isEmpty() ? "" : ("/" + mapping)));
                     }
                     DeleteMapping deleteMapping = method.getAnnotation(DeleteMapping.class);
                     if (deleteMapping != null) {
-                        paths.add(path + "/" + deleteMapping.value()[0]);
+                        mapping = deleteMapping.value()[0];
+                        paths.add(path + (mapping.isEmpty() ? "" : ("/" + mapping)));
                     }
                 }
             }

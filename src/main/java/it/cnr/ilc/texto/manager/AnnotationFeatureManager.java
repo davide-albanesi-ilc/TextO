@@ -31,14 +31,16 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
 
     @Override
     public String getLog(AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (annotationFeature.getAnnotation() == null || annotationFeature.getFeature() == null) {
+        if (annotationFeature.getAnnotation() == null || annotationFeature.getFeature() == null || annotationFeature.getValue() == null) {
             return "" + annotationFeature.getId();
         } else {
-            return annotationManager.getLog(annotationFeature.getAnnotation()) + " " + featureManager.getLog(annotationFeature.getFeature()) + " " + annotationFeature.getValue();
+            return annotationManager.getLog(annotationManager.load(annotationFeature.getAnnotation().getId())) + " "
+                    + featureManager.getLog(featureManager.load(annotationFeature.getFeature().getId())) + " "
+                    + annotationFeature.getValue();
         }
     }
 
-    public List<AnnotationFeature> getAnnotationFeatures(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
+    public List<AnnotationFeature> load(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(AnnotationFeature.class))
                 .append(" where status = 1")
@@ -46,8 +48,8 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
         return load(sql.toString());
     }
 
-    public void removeAnnotationFeatures(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
-        for (AnnotationFeature annotationFeature : getAnnotationFeatures(annotation)) {
+    public void remove(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
+        for (AnnotationFeature annotationFeature : load(annotation)) {
             remove(annotationFeature);
         }
     }

@@ -24,9 +24,9 @@ public class DatabaseInterceptor implements HandlerInterceptor {
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         domainManager.freeCache();
         if (ex == null) {
-            databaseManager.commitAndReleaseConnection();
+            databaseManager.releaseCommitConnection();
         } else {
-            databaseManager.rollbackAndReleaseConnection();
+            databaseManager.releaseRollbackConnection();
         }
     }
 

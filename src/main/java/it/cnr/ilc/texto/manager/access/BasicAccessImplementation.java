@@ -1,12 +1,9 @@
 package it.cnr.ilc.texto.manager.access;
 
 import it.cnr.ilc.texto.domain.User;
-import it.cnr.ilc.texto.manager.DatabaseManager;
-import it.cnr.ilc.texto.manager.DomainManager;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import java.util.Base64;
-import org.springframework.core.env.Environment;
 
 /**
  *
@@ -14,12 +11,8 @@ import org.springframework.core.env.Environment;
  */
 public class BasicAccessImplementation extends ExternalAccessImplementation {
 
-    public BasicAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager domainManager) {
-        super(environment, databaseManager, domainManager);
-    }
-
     @Override
-    public String retrieveToken(String token) throws Exception {
+    protected String retrieveToken(String token) throws Exception {
         if (!token.toLowerCase().startsWith("basic ")) {
             throw new AuthorizationException("invalid authorization parameter");
         }

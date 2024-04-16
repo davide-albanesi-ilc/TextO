@@ -1,0 +1,121 @@
+Layer	Sentence	Sentence	wheat
+Feature	Id	Sentence id	STRING
+
+Layer	Token	Token	lightgray
+Feature	Id	Token id	STRING
+Feature	Token	Token	STRING
+
+Layer	Form	Form	lightgreen
+Feature	Id	Word id	STRING
+Feature	Form	Form	STRING
+
+Layer	Lemma	Lemma	skyblue
+Feature	Lemma	Lemma	STRING
+
+Layer	POS	Part of speech	coral
+Tagset	UPOS	Universal part of speech
+TagsetItem	ADJ	Adjective
+TagsetItem	ADP	Adposition
+TagsetItem	ADV	Adverb
+TagsetItem	AUX	Auxiliary
+TagsetItem	CCONJ	Coordinating conjunction
+TagsetItem	DET	Determiner
+TagsetItem	INTJ	Interjection
+TagsetItem	NOUN	Noun
+TagsetItem	NUM	Numeral
+TagsetItem	PART	Particle
+TagsetItem	PRON	Pronoun
+TagsetItem	PROPN	Proper noun
+TagsetItem	PUNCT	Punctuation
+TagsetItem	SCONJ	Subordinating conjunction
+TagsetItem	SYM	Symbol
+TagsetItem	VERB	Verb
+TagsetItem	X	Other
+Feature	UPOS	Universal part of speech	TAGSET	UPOS
+
+Layer	Feats	Morphological features	gold
+Tagset	Yes	Yes
+TagsetItem	Yes	Yes
+Tagset	Aspect	Aspect
+TagsetItem	Imp	Imperfect
+TagsetItem	Perf	Perfect
+Feature	Aspect	Aspect	TAGSET	Aspect
+Tagset	Case	Case
+TagsetItem	Acc	Accusative
+TagsetItem	Nom	Nominative
+Feature	Case	Case	TAGSET	Case
+Feature	Clitic	Clitic	TAGSET	Yes
+Tagset	Definite	Definite
+TagsetItem	Def	Definite
+TagsetItem	Ind	Indefinite
+Feature	Definite	Definite	TAGSET	Definite
+Tagset	Degree	Degree
+TagsetItem	Abs	Absolute
+TagsetItem	Cmp	Comparative
+TagsetItem	Sup	Superlative
+Feature	Degree	Degree	TAGSET	Degree
+Feature	Foreign	Foreign	TAGSET	Yes
+Tagset	Gender	Gender
+TagsetItem	Fem	Feminine
+TagsetItem	Mas	Masculine
+Feature	Gender	Gender	TAGSET	Gender
+Tagset	Mood	Modality
+TagsetItem	Cnd	Conditional
+TagsetItem	Imp	Imperative
+TagsetItem	Ind	Indicative
+TagsetItem	Sub	Subjunctive/Conjunctive
+Feature	Mood	Modality	TAGSET	Mood
+Tagset	NumType	Numeral type
+TagsetItem	Card	Cardinal
+TagsetItem	Ord	Ordinal
+TagsetItem	Range	Range
+Feature	NumType	Numeral type	TAGSET	NumType
+Tagset	Number	Number
+TagsetItem	Plur	Plural
+TagsetItem	Sing	Singular
+Feature	Number	Number	TAGSET	Number
+Tagset	Person	Person
+TagsetItem	1	First
+TagsetItem	2	Second
+TagsetItem	3	Third
+Feature	Person	Person	TAGSET	Person
+Tagset	Polarity	Polarity
+TagsetItem	Pos	Positive
+TagsetItem	Neg	Negative
+Feature	Polarity	Polarity	TAGSET	Polarity
+Feature	Poss	Possessive	TAGSET	Yes
+Tagset	PronType	Pronoun type
+TagsetItem	Art	Article
+TagsetItem	Dem	Demonstrative
+TagsetItem	Exc	Exclamative
+TagsetItem	Ind	Indefinite
+TagsetItem	Int	Interrogative
+TagsetItem	Neg	Negative
+TagsetItem	Prs	Personal
+TagsetItem	Rel	Relative
+TagsetItem	Tot	Total
+Feature	PronType	Pronoun type	TAGSET	PronType
+Feature	Reflex	Reflexive	TAGSET	Yes
+Tagset	Tense	Tense
+TagsetItem	Fut	Future
+TagsetItem	Imp	Imperfect
+TagsetItem	Past	Past
+TagsetItem	Pres	Present
+TagsetItem	Int	Interrogative
+TagsetItem	Neg	Negative
+TagsetItem	Prs	Personal
+TagsetItem	Rel	Relative
+TagsetItem	Tot	Total
+Feature	Tense	Tense	TAGSET	Tense
+Feature	Typo	Typo	TAGSET	Yes
+Tagset	VerbForm	Verb form
+TagsetItem	Conv	Converb
+TagsetItem	Fin	Finite
+TagsetItem	Ger	Gerund
+TagsetItem	Inf	Infinite
+TagsetItem	Part	Participle
+Feature	VerbForm	Verb form	TAGSET	VerbForm
+Tagset	Voice	Voice
+TagsetItem	Act	Active
+TagsetItem	Pass	Passive
+Feature	Voice	Voice	TAGSET	Voice
