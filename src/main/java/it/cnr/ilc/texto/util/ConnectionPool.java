@@ -51,7 +51,14 @@ public class ConnectionPool {
         return connection;
     }
 
-    public synchronized void releaseConnection(Connection connection) throws SQLException {
+    public synchronized void releaseCommitConnection(Connection connection) throws SQLException {
+        if (distributed.remove(connection)) {
+            connection.commit();
+            connections.add(0, connection);
+        }
+    }
+
+    public synchronized void releaseRollbackConnection(Connection connection) throws SQLException {
         if (distributed.remove(connection)) {
             connection.rollback();
             connections.add(0, connection);

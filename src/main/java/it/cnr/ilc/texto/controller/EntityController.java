@@ -35,7 +35,7 @@ public abstract class EntityController<E extends Entity> extends Controller {
 
     @GetMapping("list")
     public List<E> list(@RequestParam(required = false, name = "where") String where) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        logManager.setMessage("get").appendMessage(entityClass());
+        logManager.setMessage("get").appendMessage(entityClass()).appendMessage("list");
         checkAccess(Action.READ);
         if (where != null) {
             logManager.appendMessage("where").appendMessage(where);

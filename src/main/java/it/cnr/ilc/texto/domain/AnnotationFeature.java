@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.domain;
 
+import it.cnr.ilc.texto.domain.annotation.Indexed;
 import it.cnr.ilc.texto.domain.annotation.Required;
 
 /**
@@ -31,6 +32,7 @@ public class AnnotationFeature extends Entity {
     }
 
     @Required
+    @Indexed
     public String getValue() {
         return value;
     }

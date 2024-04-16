@@ -3,14 +3,11 @@ package it.cnr.ilc.texto.manager.access;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.AccessManager.AccessImplementation;
 import it.cnr.ilc.texto.manager.AccessManager.Session;
-import it.cnr.ilc.texto.manager.DatabaseManager;
-import it.cnr.ilc.texto.manager.DomainManager;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.core.env.Environment;
 
 /**
  *
@@ -18,11 +15,11 @@ import org.springframework.core.env.Environment;
  */
 public class OpenAccessImplementation extends AccessImplementation {
 
-    private final User user;
+    private User user;
 
-    public OpenAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager domainManager) throws SQLException, ReflectiveOperationException, ManagerException {
-        super(environment, databaseManager, domainManager);
-        user = retrieveUser();
+    @Override
+    protected void init() throws Exception {
+        user = domainManager.load(User.class, 4l);
     }
 
     protected User retrieveUser() throws SQLException, ReflectiveOperationException, ManagerException {
@@ -30,37 +27,37 @@ public class OpenAccessImplementation extends AccessImplementation {
     }
 
     @Override
-    public void startRequest(HttpServletRequest request) throws Exception {
+    protected void startRequest(HttpServletRequest request) throws Exception {
     }
 
     @Override
-    public User getUser() {
+    protected User getUser() {
         return user;
     }
 
     @Override
-    public void endRequest() throws Exception {
+    protected void endRequest() throws Exception {
     }
 
     @Override
-    public String startSession(User user) throws Exception {
+    protected String startSession(User user) throws Exception {
         throw new UnsupportedOperationException("session not supported");
     }
 
     @Override
-    public Session getSession() {
+    protected Session getSession() {
         Session session = new Session();
         session.setUser(getUser());
         return session;
     }
 
     @Override
-    public void endSession() throws Exception {
+    protected void endSession() throws Exception {
         throw new UnsupportedOperationException("session not supported");
     }
 
     @Override
-    public List<Session> getSessions() {
+    protected List<Session> getSessions() {
         return Collections.EMPTY_LIST;
     }
 

@@ -2,13 +2,10 @@ package it.cnr.ilc.texto.manager.access;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.cnr.ilc.texto.domain.User;
-import it.cnr.ilc.texto.manager.DatabaseManager;
-import it.cnr.ilc.texto.manager.DomainManager;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import java.util.Base64;
 import java.util.Map;
-import org.springframework.core.env.Environment;
 
 /**
  *
@@ -17,11 +14,7 @@ import org.springframework.core.env.Environment;
 public abstract class JWTExternAccessImplementation extends ExternalAccessImplementation {
 
     private final ObjectMapper mapper = new ObjectMapper();
-
-    public JWTExternAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager entityManager) {
-        super(environment, databaseManager, entityManager);
-    }
-
+    
     @Override
     protected String retrieveToken(String token) throws Exception {
         if (!token.toLowerCase().startsWith("bearer")) {

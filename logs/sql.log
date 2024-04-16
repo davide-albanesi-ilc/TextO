@@ -1,1 +1,48 @@
-2024-01-30 15:23:27 : select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name
+2024-04-15 09:26:11 : select a.topic, a.action, r.id role, a.level from _access a join `Role` r on a.role = r.name
+2024-04-15 09:26:11 : select * from Layer where status = 1 and name = 'Token'
+2024-04-15 09:26:11 : select * from Layer where status = 1 and name = 'Sentence'
+2024-04-15 09:26:11 : select * from Layer where status = 1 and name = 'Form'
+2024-04-15 09:26:11 : select * from Layer where status = 1 and name = 'Lemma'
+2024-04-15 09:26:11 : select * from Layer where status = 1 and name = 'POS'
+2024-04-15 09:26:11 : select * from Layer where status = 1 and name = 'Feats'
+2024-04-15 09:26:11 : select * from Feature where status = 1 and layer_id = 6
+2024-04-15 09:26:11 : select * from Feature where status = 1 and layer_id = 8
+2024-04-15 09:26:11 : select * from Feature where status = 1 and layer_id = 11
+2024-04-15 09:26:11 : select * from Feature where status = 1 and layer_id = 14
+2024-04-15 09:26:11 : select * from Feature where status = 1 and layer_id = 16
+2024-04-15 09:26:11 : select * from Feature where status = 1 and layer_id = 36
+2024-04-15 09:27:41 : select * from `User` where status = 1 and username = 'davide'
+2024-04-15 09:27:41 : select * from `Resource` where status = 1
+2024-04-15 09:27:41 : select * from (select row_number() over (order by t.resource_id, t.row_number) id, t.* from ( select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-10, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+10, (select max(number) from _token where resource_id = 122)) join _text x on x.resource_id = t.resource_id where a.resource_id = 122 and (lemma = 'andare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s union select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-10, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+10, (select max(number) from _token where resource_id = 123)) join _text x on x.resource_id = t.resource_id where a.resource_id = 123 and (lemma = 'andare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s ) t ) t 
+2024-04-15 10:08:38 : select a.topic, a.action, r.id role, a.level from _access a join `Role` r on a.role = r.name
+2024-04-15 10:08:38 : select * from Layer where status = 1 and name = 'Token'
+2024-04-15 10:08:38 : select * from Layer where status = 1 and name = 'Sentence'
+2024-04-15 10:08:38 : select * from Layer where status = 1 and name = 'Form'
+2024-04-15 10:08:38 : select * from Layer where status = 1 and name = 'Lemma'
+2024-04-15 10:08:38 : select * from Layer where status = 1 and name = 'POS'
+2024-04-15 10:08:38 : select * from Layer where status = 1 and name = 'Feats'
+2024-04-15 10:08:38 : select * from Feature where status = 1 and layer_id = 6
+2024-04-15 10:08:38 : select * from Feature where status = 1 and layer_id = 8
+2024-04-15 10:08:38 : select * from Feature where status = 1 and layer_id = 11
+2024-04-15 10:08:38 : select * from Feature where status = 1 and layer_id = 14
+2024-04-15 10:08:38 : select * from Feature where status = 1 and layer_id = 16
+2024-04-15 10:08:38 : select * from Feature where status = 1 and layer_id = 36
+2024-04-15 10:10:31 : select * from `User` where status = 1 and username = 'davide'
+2024-04-15 10:10:31 : select * from `Resource` where status = 1
+2024-04-15 10:10:31 : select * from (select row_number() over (order by t.resource_id, t.row_number) id, t.* from ( select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-10, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+10, (select max(number) from _token where resource_id = 122)) join _text x on x.resource_id = t.resource_id where a.resource_id = 122 and (lemma = 'andare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s union select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-10, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+10, (select max(number) from _token where resource_id = 123)) join _text x on x.resource_id = t.resource_id where a.resource_id = 123 and (lemma = 'andare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s ) t ) t where id = 102 and resource_name like 'Il Signore%' and section_index like '-%' and left_context like '%disse%' and token like '%va%' and right_context like '%sano%'
+2024-04-15 10:29:24 : select a.topic, a.action, r.id role, a.level from _access a join `Role` r on a.role = r.name
+2024-04-15 10:29:24 : select * from Layer where status = 1 and name = 'Token'
+2024-04-15 10:29:24 : select * from Layer where status = 1 and name = 'Sentence'
+2024-04-15 10:29:24 : select * from Layer where status = 1 and name = 'Form'
+2024-04-15 10:29:24 : select * from Layer where status = 1 and name = 'Lemma'
+2024-04-15 10:29:24 : select * from Layer where status = 1 and name = 'POS'
+2024-04-15 10:29:24 : select * from Layer where status = 1 and name = 'Feats'
+2024-04-15 10:29:24 : select * from Feature where status = 1 and layer_id = 6
+2024-04-15 10:29:24 : select * from Feature where status = 1 and layer_id = 8
+2024-04-15 10:29:24 : select * from Feature where status = 1 and layer_id = 11
+2024-04-15 10:29:24 : select * from Feature where status = 1 and layer_id = 14
+2024-04-15 10:29:24 : select * from Feature where status = 1 and layer_id = 16
+2024-04-15 10:29:24 : select * from Feature where status = 1 and layer_id = 36
+2024-04-15 10:29:50 : select * from `User` where status = 1 and username = 'davide'
+2024-04-15 10:29:50 : select * from `Resource` where status = 1
+2024-04-15 10:29:50 : select * from (select row_number() over (order by t.resource_id, t.row_number) id, t.* from ( select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-10, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+10, (select max(number) from _token where resource_id = 122)) join _text x on x.resource_id = t.resource_id where a.resource_id = 122 and (lemma = 'portare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s union select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-10, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+10, (select max(number) from _token where resource_id = 123)) join _text x on x.resource_id = t.resource_id where a.resource_id = 123 and (lemma = 'portare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s ) t ) t where id = 102 and resource_name like 'Il Signore%'

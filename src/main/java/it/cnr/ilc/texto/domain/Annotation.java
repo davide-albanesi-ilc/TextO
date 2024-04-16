@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.domain;
 
+import it.cnr.ilc.texto.domain.annotation.Indexed;
 import it.cnr.ilc.texto.domain.annotation.Required;
 
 /**
@@ -33,6 +34,7 @@ public class Annotation extends Entity implements Userable {
     }
 
     @Required
+    @Indexed
     public Integer getStart() {
         return start;
     }
@@ -46,6 +48,7 @@ public class Annotation extends Entity implements Userable {
         return end;
     }
 
+    @Indexed
     public void setEnd(Integer end) {
         this.end = end;
     }

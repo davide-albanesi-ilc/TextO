@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FolderManager extends EntityManager<Folder> {
 
-    public static final int MAX_PATH_DEPTH = 24;
+    public static final int MAX_PATH_DEPTH = 16;
 
     @Lazy
     @Autowired
@@ -57,10 +57,10 @@ public class FolderManager extends EntityManager<Folder> {
         StringBuilder select = new StringBuilder();
         StringBuilder from = new StringBuilder();
         select.append("select concat('/', concat_ws('/', f").append(MAX_PATH_DEPTH - 1).append(".name");
-        from.append("from Folder f0\n");
+        from.append("from ").append(quote(Folder.class)).append(" f0\n");
         for (int i = 1; i < MAX_PATH_DEPTH; i++) {
             select.append(", f").append(MAX_PATH_DEPTH - 1 - i).append(".name");
-            from.append("left join Folder f").append(i)
+            from.append("left join ").append(quote(Folder.class)).append(" f").append(i)
                     .append(" on f").append(i).append(".id = f").append(i - 1).append(".parent_id")
                     .append(" and f").append(i).append(".status = 1 and f").append(i - 1).append(".status = 1\n");
         }
@@ -81,14 +81,14 @@ public class FolderManager extends EntityManager<Folder> {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Folder.class))
                 .append(" where status = 1 and parent_id is null");
-        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+        if (!Boolean.TRUE.equals(environment.getProperty("folder.shared-home", Boolean.class))) {
             sql.append(" and user_id = ").append(user.getId());
         }
         return loadUnique(sql.toString());
     }
 
     public void createHome(User user) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+        if (!Boolean.TRUE.equals(environment.getProperty("folder.shared-home", Boolean.class))) {
             Long id = domainManager.newId();
             StringBuilder sql = new StringBuilder();
             sql.append("insert into ").append(quote(Folder.class))
@@ -100,7 +100,7 @@ public class FolderManager extends EntityManager<Folder> {
     }
 
     public void removeHome(User user) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (!Boolean.TRUE.equals(environment.getProperty("home.shared", Boolean.class))) {
+        if (!Boolean.TRUE.equals(environment.getProperty("folder.shared-home", Boolean.class))) {
             Folder home = getHome(user);
             if (home == null) {
                 throw new ManagerException("home not found");

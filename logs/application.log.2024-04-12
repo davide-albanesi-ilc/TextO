@@ -1,0 +1,230 @@
+2024-04-12 10:10:13 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='sedia'
+2024-04-12 10:10:39 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='tavolo'
+2024-04-12 10:10:45 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='tavola'
+2024-04-12 10:10:54 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='castello'
+2024-04-12 10:11:02 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='strada'
+2024-04-12 10:11:20 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='parlare'
+2024-04-12 10:13:13 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='parlare'
+2024-04-12 10:13:56 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='parlare' index out of bounds
+2024-04-12 10:14:51 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='parlare'
+2024-04-12 10:55:01 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get me User davide
+2024-04-12 10:55:10 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get tree of User davide
+2024-04-12 10:55:50 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get Folder /Administrator
+2024-04-12 10:56:00 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get Resource /Administrator/Decameron
+2024-04-12 10:56:06 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource
+2024-04-12 10:57:06 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource
+2024-04-12 10:57:13 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource
+2024-04-12 10:58:15 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource
+2024-04-12 10:58:44 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource
+2024-04-12 11:00:37 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource
+2024-04-12 11:01:23 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get rows of Resource /Administrator/Decameron [null:null]
+2024-04-12 11:02:45 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource /Administrator/Decameron
+2024-04-12 11:04:19 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get sections of Resource /Administrator/Decameron
+2024-04-12 11:05:36 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get annotations of Resource /Administrator/Decameron [0:20]
+2024-04-12 11:39:46 ERROR (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare
+java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'portare)) k
+join `Resource` r on r.id = k.resource_id and r.status = 1
+join `Row' at line 22
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
+	at com.mysql.cj.jdbc.StatementImpl.executeQuery(StatementImpl.java:1208)
+	at it.cnr.ilc.texto.manager.DatabaseManager.query(DatabaseManager.java:79)
+	at it.cnr.ilc.texto.manager.DatabaseManager.query(DatabaseManager.java:93)
+	at it.cnr.ilc.texto.manager.UtilManager.kwic(UtilManager.java:181)
+	at it.cnr.ilc.texto.controller.UtilController.doKwic(UtilController.java:167)
+	at it.cnr.ilc.texto.controller.UtilController.kwic(UtilController.java:134)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:259)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:192)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:920)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:830)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2024-04-12 11:41:51 ERROR (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare
+java.sql.SQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'portare)) k
+join `Resource` r on r.id = k.resource_id and r.status = 1
+join `Row' at line 22
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
+	at com.mysql.cj.jdbc.StatementImpl.executeQuery(StatementImpl.java:1208)
+	at it.cnr.ilc.texto.manager.DatabaseManager.query(DatabaseManager.java:79)
+	at it.cnr.ilc.texto.manager.DatabaseManager.query(DatabaseManager.java:93)
+	at it.cnr.ilc.texto.manager.UtilManager.kwic(UtilManager.java:181)
+	at it.cnr.ilc.texto.controller.UtilController.doKwic(UtilController.java:167)
+	at it.cnr.ilc.texto.controller.UtilController.kwic(UtilController.java:134)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:259)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:192)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:920)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:830)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2024-04-12 11:42:17 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare'
+2024-04-12 11:43:51 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare'
+2024-04-12 11:47:24 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare'
+2024-04-12 12:19:11 ERROR (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare'
+java.sql.SQLSyntaxErrorException: Unknown column 'rightContext' in 'where clause'
+	at com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:121)
+	at com.mysql.cj.jdbc.exceptions.SQLExceptionsMapping.translateException(SQLExceptionsMapping.java:122)
+	at com.mysql.cj.jdbc.StatementImpl.executeQuery(StatementImpl.java:1208)
+	at it.cnr.ilc.texto.manager.DatabaseManager.query(DatabaseManager.java:79)
+	at it.cnr.ilc.texto.manager.DatabaseManager.query(DatabaseManager.java:93)
+	at it.cnr.ilc.texto.manager.UtilManager.kwic(UtilManager.java:181)
+	at it.cnr.ilc.texto.controller.UtilController.doKwic(UtilController.java:167)
+	at it.cnr.ilc.texto.controller.UtilController.kwic(UtilController.java:134)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:259)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:192)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:920)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:830)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:174)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1744)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2024-04-12 12:19:29 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare'
+2024-04-12 12:20:25 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare'
+2024-04-12 12:20:36 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] kwic for  lemma='portare'
+2024-04-12 15:28:51 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get me User admin
+2024-04-12 15:57:23 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for  lemma = 'portare' on
+2024-04-12 16:15:52 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for  lemma = 'portare' on
+2024-04-12 16:19:44 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for  lemma = 'portare' on
+2024-04-12 16:24:05 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for  lemma = 'portare' on
+2024-04-12 16:28:38 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for  lemma = 'portare'
+2024-04-12 16:29:27 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for  lemma = 'portare'
+2024-04-12 16:30:26 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for  lemma = 'portare'
+2024-04-12 16:35:45 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:36:56 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:37:12 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:37:25 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:38:17 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:39:43 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:45:56 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:46:04 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:46:15 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:46:28 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:47:51 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:49:15 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare' index out of bounds
+2024-04-12 16:49:25 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:49:34 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'
+2024-04-12 16:53:47 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] kwic for lemma = 'portare'

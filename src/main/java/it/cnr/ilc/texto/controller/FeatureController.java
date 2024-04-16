@@ -3,7 +3,6 @@ package it.cnr.ilc.texto.controller;
 import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.FeatureType;
-import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.manager.EntityManager;
 import it.cnr.ilc.texto.manager.FeatureManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
@@ -37,9 +36,8 @@ public class FeatureController extends EntityController<Feature> {
 
     @Override
     protected void checkAccess(Feature feature, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException, ManagerException {
-        Layer layer = feature.getLayer();
-        if (layer != null) {
-            accessManager.checkAccess(layer, action.equals(Action.READ) ? Action.READ : Action.WRITE);
+        if (feature.getLayer() != null) {
+            accessManager.checkAccess(feature.getLayer(), action.equals(Action.READ) ? Action.READ : Action.WRITE);
         }
     }
 

@@ -1,8 +1,13 @@
 package it.cnr.ilc.texto.manager;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import it.cnr.ilc.texto.manager.exception.ManagerException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
@@ -13,21 +18,31 @@ import org.springframework.stereotype.Component;
 @Component
 public class MonitorManager extends Manager {
 
+    private final long RESULT_TIME = 30000;
+
     private final Map<Thread, String> threads = new ConcurrentHashMap<>();
     private final Map<String, Monitor> monitors = new HashMap<>();
 
-    public void startRequest(HttpServletRequest request) throws Exception {
+    public void startRequest(HttpServletRequest request) throws ManagerException {
         String uuid = request.getHeader("uuid");
         if (uuid != null) {
+            if (monitors.containsKey(uuid)) {
+                throw new ManagerException("uuid already exsists");
+            }
             threads.put(Thread.currentThread(), uuid);
             monitors.put(uuid, new Monitor());
         }
     }
 
-    public void endRequest() throws Exception {
+    public void endRequest() throws ManagerException {
         String uuid = threads.remove(Thread.currentThread());
         if (uuid != null) {
-            monitors.remove(uuid);
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    monitors.remove(uuid);
+                }
+            }, RESULT_TIME);
         }
     }
 
@@ -43,9 +58,9 @@ public class MonitorManager extends Manager {
         }
     }
 
-    public void setMax(int max) throws InterruptedException {
+    public void setMax(int max) throws ManagerException {
         if (Thread.currentThread().isInterrupted()) {
-            throw new InterruptedException();
+            throw new ManagerException("interrupted");
         }
         String uuid = threads.get(Thread.currentThread());
         if (uuid != null) {
@@ -58,9 +73,9 @@ public class MonitorManager extends Manager {
         }
     }
 
-    public void addMax(int add) throws InterruptedException {
+    public void addMax(int add) throws ManagerException {
         if (Thread.currentThread().isInterrupted()) {
-            throw new InterruptedException();
+            throw new ManagerException("interrupted");
         }
         String uuid = threads.get(Thread.currentThread());
         if (uuid != null) {
@@ -68,13 +83,13 @@ public class MonitorManager extends Manager {
             if (monitor.max + add < 0) {
                 throw new IndexOutOfBoundsException();
             }
-            monitor.max = add;
+            monitor.max += add;
         }
     }
 
-    public void next(int value) throws InterruptedException {
+    public void next(int value) throws ManagerException {
         if (Thread.currentThread().isInterrupted()) {
-            throw new InterruptedException();
+            throw new ManagerException("interrupted");
         }
         String uuid = threads.get(Thread.currentThread());
         if (uuid != null) {
@@ -86,9 +101,9 @@ public class MonitorManager extends Manager {
         }
     }
 
-    public void next() throws InterruptedException {
+    public void next() throws ManagerException {
         if (Thread.currentThread().isInterrupted()) {
-            throw new InterruptedException();
+            throw new ManagerException("interrupted");
         }
         String uuid = threads.get(Thread.currentThread());
         if (uuid != null) {
@@ -123,6 +138,7 @@ public class MonitorManager extends Manager {
             return current;
         }
 
+        @JsonInclude(Include.NON_NULL)
         public Object getResult() {
             return result;
         }

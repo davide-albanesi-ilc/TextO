@@ -50,12 +50,6 @@ public class UserController extends EntityController<User> {
         accessManager.checkAccess(user, action);
     }
 
-    protected void preRemove(User user) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
-        if (accessManager.contains(user)) {
-            throw new ManagerException("unable to remove connected user");
-        }
-    }
-
     @GetMapping("me")
     public User me() throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         User me = accessManager.getUser();

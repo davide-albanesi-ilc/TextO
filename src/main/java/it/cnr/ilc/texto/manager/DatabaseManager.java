@@ -56,32 +56,17 @@ public final class DatabaseManager extends Manager implements Closeable {
         return connection;
     }
 
-    public void releaseConnection() throws SQLException {
+    public void releaseCommitConnection() throws SQLException {
         Connection connection = connectionMap.remove(Thread.currentThread());
         if (connection != null) {
-            connectionPool.releaseConnection(connection);
+            connectionPool.releaseCommitConnection(connection);
         }
     }
 
-    public void commitAndReleaseConnection() throws SQLException {
+    public void releaseRollbackConnection() throws SQLException {
         Connection connection = connectionMap.remove(Thread.currentThread());
         if (connection != null) {
-            try {
-                connection.commit();
-            } finally {
-                connectionPool.releaseConnection(connection);
-            }
-        }
-    }
-
-    public void rollbackAndReleaseConnection() throws SQLException {
-        Connection connection = connectionMap.remove(Thread.currentThread());
-        if (connection != null) {
-            try {
-                connection.rollback();
-            } finally {
-                connectionPool.releaseConnection(connection);
-            }
+            connectionPool.releaseRollbackConnection(connection);
         }
     }
 

@@ -1,0 +1,17 @@
+2024-04-12 16:53:32 : select a.topic, a.action, r.id role, a.level from _access a join `Role` r on a.role = r.name
+2024-04-12 16:53:32 : select * from Layer where status = 1 and name = 'Token'
+2024-04-12 16:53:32 : select * from Layer where status = 1 and name = 'Sentence'
+2024-04-12 16:53:32 : select * from Layer where status = 1 and name = 'Form'
+2024-04-12 16:53:32 : select * from Layer where status = 1 and name = 'Lemma'
+2024-04-12 16:53:32 : select * from Layer where status = 1 and name = 'POS'
+2024-04-12 16:53:32 : select * from Layer where status = 1 and name = 'Feats'
+2024-04-12 16:53:32 : select * from Feature where status = 1 and layer_id = 6
+2024-04-12 16:53:32 : select * from Feature where status = 1 and layer_id = 8
+2024-04-12 16:53:32 : select * from Feature where status = 1 and layer_id = 11
+2024-04-12 16:53:32 : select * from Feature where status = 1 and layer_id = 14
+2024-04-12 16:53:32 : select * from Feature where status = 1 and layer_id = 16
+2024-04-12 16:53:32 : select * from Feature where status = 1 and layer_id = 36
+2024-04-12 16:53:43 : select * from `User` where status = 1 and username = 'admin'
+2024-04-12 16:53:43 : select * from `Resource` where id = 122 and status = 1
+2024-04-12 16:53:43 : select * from `Resource` where id = 123 and status = 1
+2024-04-12 16:53:43 : select * from (select row_number() over (order by t.resource_id, t.row_number) id, t.* from ( select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-8, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+8, (select max(number) from _token where resource_id = 122)) join _text x on x.resource_id = t.resource_id where a.resource_id = 122 and (lemma = 'portare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s union select * from (select k.resource_id, r.name resource_name, w.section_id, s.index section_index, k.row_id, w.number "row_number", k.left left_context, k.token, k.right right_context from (select t.*, substring(x.text, l.start+1, t.start-l.start) "left", a.token, substring(x.text, t.end+1, r.end-t.end) "right" from _analysis a join _token t on t.resource_id = a.resource_id and t.number = a.number join _token l on l.resource_id = t.resource_id and l.number = greatest(t.number-8, 0) join _token r on r.resource_id = t.resource_id and r.number = least(t.number+8, (select max(number) from _token where resource_id = 123)) join _text x on x.resource_id = t.resource_id where a.resource_id = 123 and (lemma = 'portare')) k join `Resource` r on r.id = k.resource_id and r.status = 1 join `Row` w on w.id = k.row_id and w.status = 1 left join `Section` s on s.id = w.section_id and s.status = 1 order by k.number) s ) t ) t where resource_name like 'null%'

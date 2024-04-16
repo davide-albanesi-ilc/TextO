@@ -5,13 +5,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.Group;
+import it.cnr.ilc.texto.domain.GroupUser;
+import it.cnr.ilc.texto.domain.Role;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.domain.Userable;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.Closeable;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -41,10 +42,11 @@ public class AccessManager extends Manager implements Closeable {
     }
 
     @PostConstruct
-    private void initImplementation() throws ReflectiveOperationException, SQLException {
-        Class clazz = Class.forName(environment.getProperty("access.implementation.class"));
-        implementation = (AccessImplementation) clazz.getConstructor(Environment.class, DatabaseManager.class, DomainManager.class)
-                .newInstance(environment, databaseManager, domainManager);
+    private void initImplementation() throws Exception {
+        Class clazz = Class.forName(environment.getProperty("access.implementation-class"));
+        implementation = (AccessImplementation) clazz.getConstructor().newInstance();
+        implementation.init(environment, databaseManager, domainManager);
+        implementation.init();
     }
 
     @Override
@@ -92,25 +94,28 @@ public class AccessManager extends Manager implements Closeable {
         protected DatabaseManager databaseManager;
         protected DomainManager domainManager;
 
-        public AccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager domainManager) {
+        private void init(Environment environment, DatabaseManager databaseManager, DomainManager domainManager) {
             this.environment = environment;
             this.databaseManager = databaseManager;
             this.domainManager = domainManager;
         }
 
-        public abstract void startRequest(HttpServletRequest request) throws Exception;
+        protected void init() throws Exception {
+        }
 
-        public abstract User getUser();
+        protected abstract void startRequest(HttpServletRequest request) throws Exception;
 
-        public abstract void endRequest() throws Exception;
+        protected abstract User getUser();
 
-        public abstract String startSession(User user) throws Exception;
+        protected abstract void endRequest() throws Exception;
 
-        public abstract Session getSession();
+        protected abstract String startSession(User user) throws Exception;
 
-        public abstract void endSession() throws Exception;
+        protected abstract Session getSession();
 
-        public abstract Collection<Session> getSessions();
+        protected abstract void endSession() throws Exception;
+
+        protected abstract Collection<Session> getSessions();
 
     }
 
@@ -183,17 +188,17 @@ public class AccessManager extends Manager implements Closeable {
     private final Map<String, Level> accesses = new HashMap<>();
 
     @PostConstruct
-    private void initAccesses() throws SQLException, IOException, ReflectiveOperationException {
+    private void initAccesses() throws SQLException, ReflectiveOperationException {
         try {
             String key;
-            String sql = "select a.topic, a.action, r.id role, a.level from _access a join Role r on a.role = r.name";
+            String sql = "select a.topic, a.action, r.id role, a.level from _access a join " + quote(Role.class) + " r on a.role = r.name";
             List<Map<String, Object>> list = databaseManager.query(sql);
             for (Map<String, Object> record : list) {
                 key = record.get("topic") + " " + record.get("action") + " " + record.get("role");
                 accesses.put(key, Level.valueOf(record.get("level").toString()));
             }
         } finally {
-            databaseManager.commitAndReleaseConnection();
+            databaseManager.releaseCommitConnection();
         }
     }
 
@@ -263,7 +268,7 @@ public class AccessManager extends Manager implements Closeable {
             table = name.concat(Group.class.getSimpleName());
             sql = new StringBuilder();
             sql.append("select * from ").append(quote(table)).append(" e ")
-                    .append("join `GroupUser` u on e.group_id = e.group_id and e.status = 1 and u.status = 1 ")
+                    .append("join ").append(quote(GroupUser.class)).append(" u on e.group_id = e.group_id and e.status = 1 and u.status = 1 ")
                     .append("where e.").append(quote(field)).append(" = 1 and e.group_id = 1 and u.user_id = 1");
             return databaseManager.queryFirst(sql.toString()) != null;
         }

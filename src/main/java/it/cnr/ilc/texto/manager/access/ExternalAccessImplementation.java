@@ -1,11 +1,8 @@
 package it.cnr.ilc.texto.manager.access;
 
-
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.AccessManager.AccessImplementation;
 import it.cnr.ilc.texto.manager.AccessManager.Session;
-import it.cnr.ilc.texto.manager.DatabaseManager;
-import it.cnr.ilc.texto.manager.DomainManager;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -14,7 +11,6 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.core.env.Environment;
 
 /**
  *
@@ -24,15 +20,15 @@ public abstract class ExternalAccessImplementation extends AccessImplementation 
 
     private final Map<Thread, Session> threads = new ConcurrentHashMap<>();
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
-    private final long timeout;
+    private long timeout;
 
-    public ExternalAccessImplementation(Environment environment, DatabaseManager databaseManager, DomainManager domainManager) {
-        super(environment, databaseManager, domainManager);
-        timeout = Long.parseLong(environment.getProperty("access.session.timeout", "1800")) * 1000;
+    @Override
+    protected void init() throws Exception {
+        timeout = Long.parseLong(environment.getProperty("access.session-timeout", "1800")) * 1000;
     }
 
     @Override
-    public void startRequest(HttpServletRequest request) throws Exception {
+    protected void startRequest(HttpServletRequest request) throws Exception {
         String token = request.getHeader("authorization");
         if (token == null) {
             throw new AuthorizationException("authorization token missing");
@@ -63,12 +59,12 @@ public abstract class ExternalAccessImplementation extends AccessImplementation 
     protected abstract User retrieveUser(String token) throws Exception;
 
     @Override
-    public User getUser() {
+    protected User getUser() {
         return threads.get(Thread.currentThread()).getUser();
     }
 
     @Override
-    public void endRequest() throws Exception {
+    protected void endRequest() throws Exception {
         Session session = threads.remove(Thread.currentThread());
         if (session != null) {
             Timer timer = session.getTimer();
@@ -84,23 +80,22 @@ public abstract class ExternalAccessImplementation extends AccessImplementation 
     }
 
     @Override
-    public String startSession(User user) {
+    protected String startSession(User user) {
         throw new UnsupportedOperationException("session not supported");
     }
 
     @Override
-    public Session getSession() {
+    protected Session getSession() {
         return threads.get(Thread.currentThread());
     }
 
     @Override
-    public void endSession() {
-        Session session = threads.remove(Thread.currentThread());
-        sessions.remove(session.getToken());
+    protected void endSession() {
+        throw new UnsupportedOperationException("session not supported");
     }
 
     @Override
-    public Collection<Session> getSessions() {
+    protected Collection<Session> getSessions() {
         return sessions.values();
     }
 
