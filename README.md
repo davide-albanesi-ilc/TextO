@@ -20,3 +20,14 @@ Here is an example of text (extracted from the Decameron by Giovanni Boccaccio) 
 `Convenevole cosa è, carissime donne, che ciascheduna cosa la quale l’uomo fa [...]`  
 
 ## Installation instructions
+
+## Prerequisites
+
+Before you begin, ensure you have installed the following technologies on your system:
+
+- [NetBeans 22](https://netbeans.apache.org/download/index.html)
+- [Java 21](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
+- [MySQL 8.0](https://dev.mysql.com/downloads/mysql/8.0.html)
+
+
+
