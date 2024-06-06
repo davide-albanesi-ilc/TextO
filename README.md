@@ -13,7 +13,7 @@ Here is an example of text (extracted from the Decameron by Giovanni Boccaccio) 
 `#(type="Giornata", title="Giornata I", index="I")`  
 `I`  
 `##(type="Novella", title="Novella 1", index="I.1")`  
-`I.1  `
+`I.1`  
 `###(type="Paragrafo", title="Paragrafo 1", index="I.1.1")`  
 `Ser Cepparello con una falsa confessione inganna un santo frate e muorsi [...]`  
 `###(type="Paragrafo", title="Paragrafo 2", index="I.1.2")`  
