@@ -19,6 +19,4 @@ Here is an example of text (extracted from the Decameron by Giovanni Boccaccio) 
 `###(type="Paragrafo", title="Paragrafo 2", index="I.1.2")`  
 `Convenevole cosa è, carissime donne, che ciascheduna cosa la quale l’uomo fa [...]`  
 
-## System requirements
-
 ## Installation instructions
