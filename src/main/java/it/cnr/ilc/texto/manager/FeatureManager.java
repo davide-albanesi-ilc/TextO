@@ -3,9 +3,9 @@ package it.cnr.ilc.texto.manager;
 import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.FeatureType;
 import it.cnr.ilc.texto.domain.Layer;
+import it.cnr.ilc.texto.domain.Status;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
-import it.cnr.ilc.texto.manager.annotation.Trigger;
-import it.cnr.ilc.texto.manager.annotation.Trigger.Event;
+import it.cnr.ilc.texto.manager.annotation.Check;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
 import java.util.List;
@@ -42,9 +42,7 @@ public class FeatureManager extends EntityManager<Feature> {
         }
     }
 
-    @Trigger(event = Event.PRE_CREATE)
-    @Trigger(event = Event.PRE_UPDATE)
-    @Trigger(event = Event.PRE_REMOVE)
+    @Check
     protected void checkTagset(Feature previous, Feature feature) throws ManagerException {
         if (FeatureType.TAGSET.equals(feature.getType()) && feature.getTagset() == null) {
             throw new ManagerException("tagset required");
@@ -54,7 +52,7 @@ public class FeatureManager extends EntityManager<Feature> {
     public List<Feature> load(Layer layer) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Feature.class))
-                .append(" where status = 1")
+                .append(" where status = ").append(Status.VALID.ordinal())
                 .append(" and layer_id = ").append(layer.getId());
         List<Feature> features = load(sql.toString());
         for (Feature feature : features) {
@@ -63,6 +61,12 @@ public class FeatureManager extends EntityManager<Feature> {
             }
         }
         return features;
+    }
+
+    public void remove(Layer layer) throws SQLException, ReflectiveOperationException, ManagerException {
+        for (Feature feature : load(layer)) {
+            remove(feature);
+        }
     }
 
 }

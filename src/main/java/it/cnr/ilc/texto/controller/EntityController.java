@@ -2,6 +2,7 @@ package it.cnr.ilc.texto.controller;
 
 import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Entity;
+import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.Userable;
 import it.cnr.ilc.texto.manager.DomainManager;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
@@ -41,7 +42,8 @@ public abstract class EntityController<E extends Entity> extends Controller {
             logManager.appendMessage("where").appendMessage(where);
             StringBuilder builder = new StringBuilder();
             builder.append("select * from ").append(quote(entityClass()))
-                    .append(" where status = 1 and (").append(where).append(")");
+                    .append(" where status = ").append(Status.VALID.ordinal())
+                    .append(" and (").append(where).append(")");
             return entityManager().load(builder.toString());
         } else {
             return entityManager().load();

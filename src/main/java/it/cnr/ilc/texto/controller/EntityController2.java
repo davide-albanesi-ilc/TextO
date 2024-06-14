@@ -2,6 +2,7 @@ package it.cnr.ilc.texto.controller;
 
 import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Entity;
+import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.Userable;
 import it.cnr.ilc.texto.manager.DomainManager;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
@@ -42,7 +43,8 @@ public abstract class EntityController2<E extends Entity> extends Controller {
             logManager.appendMessage("where").appendMessage(where);
             StringBuilder builder = new StringBuilder();
             builder.append("select * from ").append(quote(entityClass()))
-                    .append(" where status = 1 and (").append(where).append(")");
+                    .append(" where status = ").append(Status.VALID.ordinal())
+                    .append(" and (").append(where).append(")");
             return entityManager().load(builder.toString());
         } else {
             return entityManager().load();
@@ -62,7 +64,7 @@ public abstract class EntityController2<E extends Entity> extends Controller {
         return entity;
     }
 
-    @PostMapping()
+    @PostMapping("")
     public E create(@RequestBody E entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         if (entity == null) {
             logManager.setMessage("create empty").appendMessage(entityClass());
@@ -78,7 +80,7 @@ public abstract class EntityController2<E extends Entity> extends Controller {
         }
     }
 
-    @PutMapping()
+    @PutMapping("")
     public E update(@RequestBody E entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         logManager.setMessage("update").appendMessage(entityClass());
         E previous = entityManager().load(entity.getId());
@@ -107,7 +109,7 @@ public abstract class EntityController2<E extends Entity> extends Controller {
         return entity;
     }
 
-    @DeleteMapping()
+    @DeleteMapping("")
     public Map<String, Object> remove(@RequestBody E entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         logManager.setMessage("remove").appendMessage(entityClass());
         E previous = entityManager().load(entity.getId());

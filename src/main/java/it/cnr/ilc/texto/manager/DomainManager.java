@@ -129,21 +129,22 @@ public class DomainManager extends Manager {
         entity.setId(newId());
         entity.setStatus(Status.VALID);
         entity.setTime(LocalDateTime.now());
-        preCheck(entity);
         executeTriggers(Event.PRE_CREATE, null, entity);
+        preCheck(entity);
         sqlInsert(entity);
         executeTriggers(Event.POST_CREATE, null, entity);
         cache.put(entity);
     }
 
     public <E extends Entity> void create(List<E> entities) throws SQLException, ReflectiveOperationException, ManagerException {
+        monitorManager.addMax(entities.size());
         long id = newId(entities.size());
         for (E entity : entities) {
             entity.setId(id++);
             entity.setStatus(Status.VALID);
             entity.setTime(LocalDateTime.now());
-            preCheck(entity);
             executeTriggers(Event.PRE_CREATE, null, entity);
+            preCheck(entity);
             sqlInsert(entity);
             executeTriggers(Event.POST_CREATE, null, entity);
             cache.put(entity);
@@ -159,9 +160,9 @@ public class DomainManager extends Manager {
         }
         entity.setStatus(Status.VALID);
         entity.setTime(LocalDateTime.now());
+        executeTriggers(Event.PRE_UPDATE, previous, entity);
         checkChanges(previous, entity);
         preCheck(previous, entity);
-        executeTriggers(Event.PRE_UPDATE, previous, entity);
         sqlUpdate(descriptor.name, entity.getId());
         sqlInsert(entity);
         executeTriggers(Event.POST_UPDATE, previous, entity);
@@ -176,8 +177,8 @@ public class DomainManager extends Manager {
         }
         E entity = merge(previous, values);
         checkChanges(previous, entity);
-        preCheck(previous, entity);
         executeTriggers(Event.PRE_UPDATE, previous, entity);
+        preCheck(previous, entity);
         sqlUpdate(descriptor.name, id);
         sqlInsert(entity);
         executeTriggers(Event.POST_UPDATE, previous, entity);
@@ -192,9 +193,9 @@ public class DomainManager extends Manager {
         }
         entity.setStatus(Status.REMOVED);
         entity.setTime(LocalDateTime.now());
+        executeTriggers(Event.PRE_REMOVE, previous, entity);
         referenceCheck(entity);
         preCheck(previous, entity);
-        executeTriggers(Event.PRE_REMOVE, previous, entity);
         sqlUpdate(descriptor.name, entity.getId());
         sqlInsert(entity);
         executeTriggers(Event.POST_REMOVE, previous, entity);
@@ -209,8 +210,8 @@ public class DomainManager extends Manager {
         }
         previous.setStatus(Status.REMOVED);
         previous.setTime(LocalDateTime.now());
-        referenceCheck(previous);
         executeTriggers(Event.PRE_REMOVE, previous, previous);
+        referenceCheck(previous);
         sqlUpdate(descriptor.name, id);
         sqlInsert(previous);
         executeTriggers(Event.POST_REMOVE, previous, previous);
@@ -246,8 +247,8 @@ public class DomainManager extends Manager {
         E previous = toEntity(records.get(0), descriptor);
         entity.setStatus(Status.VALID);
         entity.setTime(LocalDateTime.now());
-        preCheck(previous, entity);
         executeTriggers(Event.PRE_RESTORE, previous, entity);
+        preCheck(previous, entity);
         sqlRestore(descriptor.name, entity.getId());
         sqlInsert(entity);
         executeTriggers(Event.POST_RESTORE, previous, entity);
@@ -269,8 +270,8 @@ public class DomainManager extends Manager {
         E previous = toEntity(records.get(0), descriptor);
         previous.setStatus(Status.VALID);
         previous.setTime(LocalDateTime.now());
-        sqlRestore(descriptor.name, id);
         executeTriggers(Event.PRE_RESTORE, previous, previous);
+        sqlRestore(descriptor.name, id);
         sqlInsert(previous);
         executeTriggers(Event.POST_RESTORE, previous, previous);
         return cache.put(previous);
@@ -361,7 +362,7 @@ public class DomainManager extends Manager {
             if (field.getter.isAnnotationPresent(Unique.class) && value != null) {
                 sql = new StringBuilder();
                 sql.append("select count(id) from ").append(quote(descriptor.name))
-                        .append(" where status = 1 and ")
+                        .append(" where status = ").append(Status.VALID.ordinal()).append(" and ")
                         .append(quote(field.sqlField)).append(" = ").append(sqlValue(value))
                         .append(" and id <> ").append(entity.getId());
                 for (String group : field.getter.getAnnotation(Unique.class).group()) {

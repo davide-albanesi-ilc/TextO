@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.manager;
 
+import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.Tagset;
 import it.cnr.ilc.texto.domain.TagsetItem;
@@ -34,7 +35,7 @@ public class TagsetManager extends EntityManager<Tagset> {
     public List<TagsetItem> getItems(Tagset tagset) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(TagsetItem.class))
-                .append(" where status = 1")
+                .append(" where status = ").append(Status.VALID.ordinal())
                 .append(" and tagset_id = ").append(tagset.getId());
         return tagsetItemManager.load(sql.toString());
     }

@@ -2,6 +2,7 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Section;
+import it.cnr.ilc.texto.domain.Status;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.annotation.Check;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
@@ -47,7 +48,7 @@ public class SectionManager extends EntityManager<Section> {
     public List<Section> load(Resource resource) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Section.class))
-                .append(" where status = 1")
+                .append(" where status = ").append(Status.VALID.ordinal())
                 .append(" and resource_id = ").append(resource.getId())
                 .append(" and parent_id is null")
                 .append(" order by start");
@@ -57,9 +58,23 @@ public class SectionManager extends EntityManager<Section> {
     public List<Section> load(Section section) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Section.class))
-                .append(" where status = 1")
+                .append(" where status = ").append(Status.VALID.ordinal())
                 .append(" and parent_id = ").append(section.getId())
                 .append(" order by start");
         return load(sql.toString());
     }
+
+    public void remove(Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
+        for (Section section : load(resource)) {
+            recursiveRemove(section);
+        }
+    }
+
+    private void recursiveRemove(Section section) throws SQLException, ReflectiveOperationException, ManagerException {
+        for (Section subSection : load(section)) {
+            recursiveRemove(subSection);
+        }
+        remove(section);
+    }
+
 }

@@ -62,16 +62,18 @@ public class FolderManager extends EntityManager<Folder> {
             select.append(", f").append(MAX_PATH_DEPTH - 1 - i).append(".name");
             from.append("left join ").append(quote(Folder.class)).append(" f").append(i)
                     .append(" on f").append(i).append(".id = f").append(i - 1).append(".parent_id")
-                    .append(" and f").append(i).append(".status = 1 and f").append(i - 1).append(".status = 1\n");
+                    .append(" and f").append(i).append(".status = ").append(Status.VALID.ordinal())
+                    .append(" and f").append(i - 1).append(".status = ").append(Status.VALID.ordinal()).append("\n");
         }
-        select.append(")) path \n").append(from).append("where f0.id = ").append(folder.getId()).append(" and f0.status = 1");
+        select.append(")) path \n").append(from)
+                .append("where f0.id = ").append(folder.getId()).append(" and f0.status = ").append(Status.VALID.ordinal());
         return databaseManager.queryFirst(select.toString(), String.class);
     }
 
     public boolean exists(Folder parent, String name) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select count(id) from ").append(quote(Folder.class))
-                .append(" where status = 1")
+                .append(" where status = ").append(Status.VALID.ordinal())
                 .append(" and name = ").append(sqlValue(name))
                 .append(" and parent_id = ").append(parent.getId());
         return databaseManager.queryFirst(sql.toString(), Number.class).intValue() > 0;
@@ -80,7 +82,7 @@ public class FolderManager extends EntityManager<Folder> {
     public Folder getHome(User user) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Folder.class))
-                .append(" where status = 1 and parent_id is null");
+                .append(" where status = ").append(Status.VALID.ordinal()).append(" and parent_id is null");
         if (!Boolean.TRUE.equals(environment.getProperty("folder.shared-home", Boolean.class))) {
             sql.append(" and user_id = ").append(user.getId());
         }
@@ -151,11 +153,11 @@ public class FolderManager extends EntityManager<Folder> {
     private List<Listable> list(Long id) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Folder.class))
-                .append(" where status = 1 and parent_id = ").append(id);
+                .append(" where status = ").append(Status.VALID.ordinal()).append(" and parent_id = ").append(id);
         List<Listable> list = new ArrayList<>(load(sql.toString()));
         sql = new StringBuilder();
         sql.append("select * from ").append(quote(Resource.class))
-                .append(" where status = 1 and parent_id = ").append(id);
+                .append(" where status = ").append(Status.VALID.ordinal()).append(" and parent_id = ").append(id);
         list.addAll(domainManager.load(Resource.class, sql.toString()));
         Collections.sort(list, (l1, l2) -> l1.getName().compareTo(l2.getName()));
         return list;

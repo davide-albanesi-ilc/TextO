@@ -7,6 +7,7 @@ import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.Group;
 import it.cnr.ilc.texto.domain.GroupUser;
 import it.cnr.ilc.texto.domain.Role;
+import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.domain.Userable;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
@@ -261,14 +262,15 @@ public class AccessManager extends Manager implements Closeable {
                 .append(" where ").append(field).append(" = ").append(entity.getId())
                 .append(" and user_id = ").append(user.getId())
                 .append(" and action = '").append(action.name()).append("'")
-                .append(" and status = 1");
+                .append(" and status = ").append(Status.VALID.ordinal());
         if (databaseManager.queryFirst(sql.toString()) != null) {
             return true;
         } else {
             table = name.concat(Group.class.getSimpleName());
             sql = new StringBuilder();
             sql.append("select * from ").append(quote(table)).append(" e ")
-                    .append("join ").append(quote(GroupUser.class)).append(" u on e.group_id = e.group_id and e.status = 1 and u.status = 1 ")
+                    .append("join ").append(quote(GroupUser.class)).append(" u ")
+                    .append("on e.group_id = e.group_id and e.status = ").append(Status.VALID.ordinal()).append(" and u.status = ").append(Status.VALID.ordinal()).append(" ")
                     .append("where e.").append(quote(field)).append(" = 1 and e.group_id = 1 and u.user_id = 1");
             return databaseManager.queryFirst(sql.toString()) != null;
         }

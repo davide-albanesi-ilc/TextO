@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.manager.access;
 
+import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
@@ -20,7 +21,7 @@ public class BasicAccessImplementation extends ExternalAccessImplementation {
         String[] credentials = token.split(":");
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(User.class)).append(" u ")
-                .append("join _credential c on u.id = c.user_id and u.status = 1 ")
+                .append("join _credential c on u.id = c.user_id and u.status = ").append(Status.VALID.ordinal()).append(" ")
                 .append("where username = '").append(credentials[0]).append("'")
                 .append(" and password = upper(sha1('").append(credentials[1]).append("))'");
         User user = domainManager.loadUnique(User.class, sql.toString());
@@ -36,7 +37,7 @@ public class BasicAccessImplementation extends ExternalAccessImplementation {
         String[] credentials = token.split(":");
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(User.class)).append(" u ")
-                .append("join _credential c on u.id = c.user_id and u.status = 1 ")
+                .append("join _credential c on u.id = c.user_id and u.status = ").append(Status.VALID.ordinal()).append(" ")
                 .append("where username = '").append(credentials[0]).append("'")
                 .append(" and password = upper(sha1('").append(credentials[1]).append("))'");
         return domainManager.loadUnique(User.class, sql.toString());

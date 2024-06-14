@@ -32,7 +32,7 @@ public class AnnotationFeature extends Entity {
     }
 
     @Required
-    @Indexed
+    @Indexed(name = "value")
     public String getValue() {
         return value;
     }
