@@ -25,6 +25,7 @@ public class Annotation extends Entity implements Userable {
     }
 
     @Required
+    @Indexed(name = "offset", group = {"start", "end"})
     public Resource getResource() {
         return resource;
     }
@@ -34,7 +35,6 @@ public class Annotation extends Entity implements Userable {
     }
 
     @Required
-    @Indexed
     public Integer getStart() {
         return start;
     }
@@ -48,7 +48,6 @@ public class Annotation extends Entity implements Userable {
         return end;
     }
 
-    @Indexed
     public void setEnd(Integer end) {
         this.end = end;
     }

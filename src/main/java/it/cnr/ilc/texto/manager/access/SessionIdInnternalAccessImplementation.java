@@ -18,7 +18,7 @@ public class SessionIdInnternalAccessImplementation extends InternalAccessImplem
         if (!token.toLowerCase().startsWith("sessionid")) {
             throw new AuthorizationException("invalid authorization parameter");
         }
-        return token.substring(10);
+        return token.substring(9).trim();
     }
 
     @Override

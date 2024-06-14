@@ -175,7 +175,7 @@ public class ResourceController extends EntityController<Resource> {
     }
 
     @GetMapping("{id}/analize")
-    public void analysis(@PathVariable("id") Long id) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
+    public void analize(@PathVariable("id") Long id) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         logManager.setMessage("crete analysis for " + entityClass().getSimpleName());
         Resource resource = resourceManager.load(id);
         if (resource == null) {

@@ -346,7 +346,6 @@ public class AnalysisManager extends Manager {
             }
             monitorManager.next();
         }
-        monitorManager.setMax(entities.size());
         domainManager.create(entities);
     }
 

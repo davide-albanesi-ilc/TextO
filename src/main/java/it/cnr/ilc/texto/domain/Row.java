@@ -17,6 +17,8 @@ public class Row extends Entity {
     private Integer end;
 
     @Required
+    @Indexed(name = "number", group = {"number"})
+    @Indexed(name = "offset", group = {"start", "end"})
     public Resource getResource() {
         return resource;
     }
@@ -51,7 +53,6 @@ public class Row extends Entity {
     }
 
     @Required
-    @Indexed
     public Integer getStart() {
         return start;
     }
@@ -61,7 +62,6 @@ public class Row extends Entity {
     }
 
     @Required
-    @Indexed
     public Integer getEnd() {
         return end;
     }

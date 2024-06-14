@@ -2,6 +2,7 @@ package it.cnr.ilc.texto.manager.access;
 
 import it.cnr.ilc.texto.domain.Folder;
 import it.cnr.ilc.texto.domain.Role;
+import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
@@ -39,8 +40,11 @@ public class MaiaAccessImplementation extends JWTExternAccessImplementation {
         user.setName((String) payload.get("name"));
         user.setEmail((String) payload.get("email"));
         String roleName = matches.get((String) payload.get("role"));
-        String sql = "select * from Role where status = 1 and name = " + sqlValue(roleName);
-        Role role = domainManager.loadUnique(Role.class, sql);
+        StringBuilder builder = new StringBuilder();
+        builder.append("select * from ").append(quote(Role.class))
+                .append(" where status = ").append(Status.VALID.ordinal())
+                .append(" and name = ").append(sqlValue(roleName));
+        Role role = domainManager.loadUnique(Role.class, builder.toString());
         user.setRole(role);
         user.setEnabled(Boolean.TRUE);
         return user;

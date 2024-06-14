@@ -70,6 +70,9 @@ public class MarkedTextUploader extends Uploader {
             previous = current;
             minus += matcher.end() - matcher.start();
         }
+        if (sections.isEmpty()) {
+            throw new ManagerException("no marker found");
+        }
         while (previous != null) {
             previous.setEnd(source.length() - minus);
             previous = previous.getParent();
@@ -91,7 +94,7 @@ public class MarkedTextUploader extends Uploader {
         if (matcher.find()) {
             return matcher.group(1);
         } else {
-            throw new ManagerException("invalid section attribute " + string);
+            throw new ManagerException("section attribute not found" + string);
         }
     }
 

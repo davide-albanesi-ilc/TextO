@@ -23,6 +23,8 @@ import java.net.URISyntaxException;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import it.cnr.ilc.texto.domain.annotation.Indexed;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  *
@@ -134,18 +136,23 @@ public class DatabaseCreator {
     private String getCreationIndex(Class<? extends Entity> clazz) {
         StringBuilder builder = new StringBuilder();
         Entity.getters(clazz).stream()
-                .filter(m -> m.isAnnotationPresent(Indexed.class))
+                .filter(m -> m.getAnnotationsByType(Indexed.class) != null)
                 .map(m -> getCreationIndex(m))
                 .forEach(s -> builder.append(s));
         return builder.toString();
     }
 
     private String getCreationIndex(Method method) {
+        Indexed[] indexeds = method.getAnnotationsByType(Indexed.class);
         StringBuilder builder = new StringBuilder();
-        String table = method.getDeclaringClass().getSimpleName();
-        String field = getSQLField(method);
-        builder.append("create index index_").append(table).append("_").append(field)
-                .append(" on ").append(quote(table)).append(" (").append(field).append(");\n");
+        for (Indexed indexed : indexeds) {
+            String table = method.getDeclaringClass().getSimpleName();
+            String name = indexed.name();
+            String field = getSQLField(method);
+            String group = Stream.concat(Stream.of(field), Arrays.stream(indexed.group())).collect(Collectors.joining(", "));
+            builder.append("create index index_").append(table).append("_").append(name)
+                    .append(" on ").append(quote(table)).append("(").append(group).append(");\n");
+        }
         return builder.toString();
     }
 
@@ -165,17 +172,14 @@ public class DatabaseCreator {
                 .append("drop table if exists _token;\n")
                 .append("create table _token (resource_id bigint, row_id bigint, number int, start int, end int, primary key (resource_id, number));\n")
                 .append("alter table _token add constraint fk_token_resource_id foreign key (resource_id) references Resource(id);\n")
-                .append("alter table _token add constraint fk_token_rrow_id foreign key (row_id) references `Row`(id);\n")
-                .append("create index index_token_number on _token(number);\n")
-                .append("create index index_token_start on _token(start);\n")
-                .append("create index index_token_end on _token(end);\n")
+                .append("alter table _token add constraint fk_token_row_id foreign key (row_id) references `Row`(id);\n")
                 .append("drop table if exists _analysis;\n")
                 .append("create table _analysis (resource_id bigint, number int, token varchar(255), form varchar(255), lemma varchar(255), pos varchar(255));\n")
                 .append("alter table _analysis add constraint fk_analysis_token_id foreign key (resource_id, number) references _token(resource_id, number);\n")
-                .append("create index index_analysis_token on _analysis(token);\n")
-                .append("create index index_analysis_form on _analysis(form);\n")
-                .append("create index index_analysis_lemma on _analysis(lemma);\n")
-                .append("create index index_analysis_pos on _analysis(pos);");
+                .append("create index index_analysis_token on _analysis(resource_id, token);\n")
+                .append("create index index_analysis_form on _analysis(resource_id, form);\n")
+                .append("create index index_analysis_lemma on _analysis(resource_id, lemma);\n")
+                .append("create index index_analysis_pos on _analysis(resource_id, pos);");
         return builder.toString();
     }
 
@@ -196,7 +200,7 @@ public class DatabaseCreator {
                 .append("insert into Role (id, status, time, name) values (2, 1, now(), 'Editor');\n")
                 .append("insert into Role (id, status, time, name) values (3, 1, now(), 'Viewer');\n")
                 .append("insert into User (id, status, time, name, username, role_id, enabled) values (4, 1, now(), 'Administrator', 'admin', 1, true);\n")
-                .append("insert into _credential (user_id, password) values (4, upper(sha1('Maia$23-')));\n")
+                .append("insert into _credential (user_id, password) values (4, upper(sha1('password')));\n")
                 .append("insert into Folder (id, status, time, name, user_id) values (5, 1, now(), 'Administrator', 4);\n")
                 .append("update _sequence set id = 6;\n");
         return builder.toString();
