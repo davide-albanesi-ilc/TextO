@@ -7,7 +7,6 @@ import it.cnr.ilc.texto.domain.Folder;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Row;
-import it.cnr.ilc.texto.domain.Status;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.annotation.Check;
 import it.cnr.ilc.texto.manager.annotation.Trigger;
@@ -44,7 +43,7 @@ public class ResourceManager extends EntityManager<Resource> {
     private SectionManager sectionManager;
     @Lazy
     @Autowired
-    private RowManager rowManager;
+    private SectionTypeManager sectionTypeManager;
     @Autowired
     private MonitorManager monitorManager;
 
@@ -85,9 +84,9 @@ public class ResourceManager extends EntityManager<Resource> {
     }
 
     @Trigger(event = Event.PRE_REMOVE)
-    public void removeRowsAndSections(Resource previous, Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
-        rowManager.remove(resource);
+    public void removeSections(Resource previous, Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
         sectionManager.remove(resource);
+        sectionTypeManager.remove(resource);
     }
 
     public Set<String> getUploaders() {
@@ -99,14 +98,11 @@ public class ResourceManager extends EntityManager<Resource> {
         StringBuilder from = new StringBuilder();
         select.append("select concat('/', concat_ws('/', r0.name, f").append(MAX_PATH_DEPTH - 1).append(".name");
         from.append("from ").append(quote(Resource.class)).append(" r0 join ").append(quote(Folder.class)).append(" f0 ")
-                .append("on f0.id = r0.parent_id and r0.status = ").append(Status.VALID.ordinal())
-                .append(" and f0.status = ").append(Status.VALID.ordinal()).append("\n");
+                .append("on f0.id = r0.parent_id\n");
         for (int i = 1; i < MAX_PATH_DEPTH; i++) {
             select.append(", f").append(MAX_PATH_DEPTH - 1 - i).append(".name");
             from.append("left join ").append(quote(Folder.class)).append(" f").append(i)
-                    .append(" on f").append(i).append(".id = f").append(i - 1).append(".parent_id")
-                    .append(" and f").append(i).append(".status = ").append(Status.VALID.ordinal())
-                    .append(" and f").append(i - 1).append(".status = ").append(Status.VALID.ordinal()).append("\n");
+                    .append(" on f").append(i).append(".id = f").append(i - 1).append(".parent_id\n");
         }
         select.append(")) path \n").append(from).append("where r0.id = ").append(resource.getId());
         return databaseManager.queryFirst(select.toString(), String.class);
@@ -129,8 +125,7 @@ public class ResourceManager extends EntityManager<Resource> {
     public boolean exists(Folder parent, String name) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select count(id) from ").append(quote(Resource.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and name = ").append(sqlValue(name))
+                .append(" where name = ").append(sqlValue(name))
                 .append(" and parent_id = ").append(parent.getId());
         return databaseManager.queryFirst(sql.toString(), Number.class).intValue() > 0;
     }
@@ -161,8 +156,7 @@ public class ResourceManager extends EntityManager<Resource> {
         checkOffset(offset, getRowCount(resource));
         StringBuilder sql = new StringBuilder();
         sql.append("select min(start) start, max(end) end from ").append(quote(Row.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and resource_id = ").append(resource.getId())
+                .append(" where resource_id = ").append(resource.getId())
                 .append(" and number >= ").append(offset.start).append(" and number < ").append(offset.end);
         Map<String, Object> record = databaseManager.queryFirst(sql.toString());
         Offset abbsolute = new Offset();

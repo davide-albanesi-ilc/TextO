@@ -2,9 +2,10 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Section;
-import it.cnr.ilc.texto.domain.Status;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.annotation.Check;
+import it.cnr.ilc.texto.manager.annotation.Trigger;
+import it.cnr.ilc.texto.manager.annotation.Trigger.Event;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
 import java.util.List;
@@ -22,6 +23,9 @@ public class SectionManager extends EntityManager<Section> {
     @Lazy
     @Autowired
     private ResourceManager resourceManager;
+    @Lazy
+    @Autowired
+    private RowManager rowManager;
 
     @Override
     protected Class<Section> entityClass() {
@@ -33,8 +37,7 @@ public class SectionManager extends EntityManager<Section> {
         if (section.getResource() == null || section.getTitle() == null) {
             return "" + section.getId();
         } else {
-            return resourceManager.getLog(resourceManager.load(section.getResource().getId())) + " "
-                    + section.getTitle();
+            return resourceManager.getLog(resourceManager.load(section.getResource().getId())) + " " + section.getTitle();
         }
     }
 
@@ -45,11 +48,15 @@ public class SectionManager extends EntityManager<Section> {
         }
     }
 
+    @Trigger(event = Event.PRE_REMOVE)
+    public void removeRows(Section previous, Section section) throws SQLException, ReflectiveOperationException, ManagerException {
+        rowManager.remove(section);
+    }
+
     public List<Section> load(Resource resource) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Section.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and resource_id = ").append(resource.getId())
+                .append(" where resource_id = ").append(resource.getId())
                 .append(" and parent_id is null")
                 .append(" order by start");
         return load(sql.toString());
@@ -58,8 +65,7 @@ public class SectionManager extends EntityManager<Section> {
     public List<Section> load(Section section) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Section.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and parent_id = ").append(section.getId())
+                .append(" where parent_id = ").append(section.getId())
                 .append(" order by start");
         return load(sql.toString());
     }

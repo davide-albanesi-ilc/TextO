@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.manager;
 
+import it.cnr.ilc.texto.domain.Analysis;
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
 import it.cnr.ilc.texto.domain.Entity;
@@ -7,8 +8,10 @@ import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.FeatureType;
 import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Resource;
+import it.cnr.ilc.texto.domain.Row;
 import it.cnr.ilc.texto.domain.Tagset;
 import it.cnr.ilc.texto.domain.TagsetItem;
+import it.cnr.ilc.texto.domain.Token;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.util.DatabaseCreator;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,14 +36,13 @@ import org.springframework.stereotype.Component;
  * @author oakgen
  */
 @Component
-public class AnalysisManager extends Manager {
+public class AnalysisManager extends EntityManager<Analysis> {
 
     @Autowired
-    private DatabaseManager databaseManager;
-    @Autowired
-    private DomainManager domainManager;
-    @Autowired
     private MonitorManager monitorManager;
+    @Lazy
+    @Autowired
+    private ResourceManager resourceManager;
 
     private Layer sentenceLayer;
     private Layer tokenLayer;
@@ -57,24 +60,24 @@ public class AnalysisManager extends Manager {
     @PostConstruct
     private void loadLayers() throws SQLException, ReflectiveOperationException {
         try {
-            tokenLayer = domainManager.loadUnique(Layer.class, "select * from Layer where status = 1 and name = 'Token'");
+            tokenLayer = domainManager.loadUnique(Layer.class, "select * from Layer where name = 'Token'");
             if (tokenLayer != null) {
-                sentenceLayer = domainManager.loadUnique(Layer.class, "select * from Layer where status = 1 and name = 'Sentence'");
-                formLayer = domainManager.loadUnique(Layer.class, "select * from Layer where status = 1 and name = 'Form'");
-                lemmaLayer = domainManager.loadUnique(Layer.class, "select * from Layer where status = 1 and name = 'Lemma'");
-                posLayer = domainManager.loadUnique(Layer.class, "select * from Layer where status = 1 and name = 'POS'");
-                featsLayer = domainManager.loadUnique(Layer.class, "select * from Layer where status = 1 and name = 'Feats'");
-                sentenceFetures = domainManager.load(Feature.class, "select * from Feature where status = 1 and layer_id = " + sentenceLayer.getId())
+                sentenceLayer = domainManager.loadUnique(Layer.class, "select * from Layer where name = 'Sentence'");
+                formLayer = domainManager.loadUnique(Layer.class, "select * from Layer where name = 'Form'");
+                lemmaLayer = domainManager.loadUnique(Layer.class, "select * from Layer where name = 'Lemma'");
+                posLayer = domainManager.loadUnique(Layer.class, "select * from Layer where name = 'POS'");
+                featsLayer = domainManager.loadUnique(Layer.class, "select * from Layer where name = 'Feats'");
+                sentenceFetures = domainManager.load(Feature.class, "select * from Feature where layer_id = " + sentenceLayer.getId())
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                tokenFeatures = domainManager.load(Feature.class, "select * from Feature where status = 1 and layer_id = " + tokenLayer.getId())
+                tokenFeatures = domainManager.load(Feature.class, "select * from Feature where layer_id = " + tokenLayer.getId())
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                formFeatures = domainManager.load(Feature.class, "select * from Feature where status = 1 and layer_id = " + formLayer.getId())
+                formFeatures = domainManager.load(Feature.class, "select * from Feature where layer_id = " + formLayer.getId())
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                lemmaFeatures = domainManager.load(Feature.class, "select * from Feature where status = 1 and layer_id = " + lemmaLayer.getId())
+                lemmaFeatures = domainManager.load(Feature.class, "select * from Feature where layer_id = " + lemmaLayer.getId())
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                posFeatures = domainManager.load(Feature.class, "select * from Feature where status = 1 and layer_id = " + posLayer.getId())
+                posFeatures = domainManager.load(Feature.class, "select * from Feature where layer_id = " + posLayer.getId())
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                featsFeatures = domainManager.load(Feature.class, "select * from Feature where status = 1 and layer_id = " + featsLayer.getId())
+                featsFeatures = domainManager.load(Feature.class, "select * from Feature where layer_id = " + featsLayer.getId())
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
             }
         } finally {
@@ -82,52 +85,18 @@ public class AnalysisManager extends Manager {
         }
     }
 
-    public Layer getSentenceLayer() {
-        return sentenceLayer;
+    @Override
+    protected Class<Analysis> entityClass() {
+        return Analysis.class;
     }
 
-    public Layer getTokenLayer() {
-        return tokenLayer;
-    }
-
-    public Layer getFormLayer() {
-        return formLayer;
-    }
-
-    public Layer getLemmaLayer() {
-        return lemmaLayer;
-    }
-
-    public Layer getPosLayer() {
-        return posLayer;
-    }
-
-    public Layer getFeatsLayer() {
-        return featsLayer;
-    }
-
-    public Map<String, Feature> getSentenceFetures() {
-        return sentenceFetures;
-    }
-
-    public Map<String, Feature> getTokenFeatures() {
-        return tokenFeatures;
-    }
-
-    public Map<String, Feature> getFormFeatures() {
-        return formFeatures;
-    }
-
-    public Map<String, Feature> getLemmaFeatures() {
-        return lemmaFeatures;
-    }
-
-    public Map<String, Feature> getPosFeatures() {
-        return posFeatures;
-    }
-
-    public Map<String, Feature> getFeatsFeatures() {
-        return featsFeatures;
+    @Override
+    public String getLog(Analysis analysis) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (analysis.getResource() == null || analysis.getValue() == null) {
+            return "" + analysis.getId();
+        } else {
+            return resourceManager.getLog(resourceManager.load(analysis.getResource().getId())) + " " + analysis.getValue();
+        }
     }
 
     public void initLayers() throws SQLException, ReflectiveOperationException, ManagerException {
@@ -180,7 +149,7 @@ public class AnalysisManager extends Manager {
         loadLayers();
     }
 
-    public void analize(Resource resource, User user) throws SQLException, ReflectiveOperationException, ManagerException {
+    public void analize(Resource resource, User user, Map<String, String> parameters) throws SQLException, ReflectiveOperationException, ManagerException {
         if (tokenLayer == null) {
             throw new ManagerException("analysis layers have not been initialized");
         }
@@ -194,10 +163,12 @@ public class AnalysisManager extends Manager {
         RowIndexes rowIndexes = new RowIndexes(resource);
         List<Entity> entities = new ArrayList<>();
         String[] split, subsplit, offset, feats;
-        String token = null, form = null, lemma = null, pos = null;
+        String value = null, form = null, lemma = null, pos = null;
         Annotation annotation;
         AnnotationFeature annotationFeature;
         Feature feature;
+        Token token = null;
+        Analysis analysis;
         StringBuilder sql;
         int start = 0, end = 0, sentenceStart = -1, sentenceId = 0, number = -1;
         for (String line : lines) {
@@ -243,7 +214,7 @@ public class AnalysisManager extends Manager {
                     annotationFeature.setFeature(tokenFeatures.get("Token"));
                     annotationFeature.setValue(split[1]);
                     entities.add(annotationFeature);
-                    token = annotationFeature.getValue();
+                    value = annotationFeature.getValue();
                 }
                 // FORM
                 if (!split[0].contains("-")) {
@@ -323,25 +294,23 @@ public class AnalysisManager extends Manager {
                 }
                 if (!split[9].equals("_")) {
                     number++;
-                    sql = new StringBuilder();
-                    sql.append("insert into _token values (")
-                            .append(resource.getId()).append(", ")
-                            .append(rowIndexes.getId(start)).append(", ")
-                            .append(number).append(", ")
-                            .append(start).append(", ")
-                            .append(end).append(")");
-                    databaseManager.update(sql.toString());
+                    token = new Token();
+                    token.setResource(resource);
+                    token.setRow(Entity.newGhost(Row.class, rowIndexes.getId(start)));
+                    token.setNumber(number);
+                    token.setStart(start);
+                    token.setEnd(end);
+                    entities.add(token);
                 }
                 if (!split[0].contains("-")) {
-                    sql = new StringBuilder();
-                    sql.append("insert into _analysis values (")
-                            .append(resource.getId()).append(", ")
-                            .append(number).append(", '")
-                            .append(token).append("', '")
-                            .append(form).append("', '")
-                            .append(lemma).append("', '")
-                            .append(pos).append("')");
-                    databaseManager.update(sql.toString());
+                    analysis = new Analysis();
+                    analysis.setResource(resource);
+                    analysis.setToken(token);
+                    analysis.setValue(value);
+                    analysis.setForm(form);
+                    analysis.setLemma(lemma);
+                    analysis.setPos(pos);
+                    entities.add(analysis);
                 }
             }
             monitorManager.next();
@@ -355,7 +324,7 @@ public class AnalysisManager extends Manager {
         private final int[] starts;
 
         private RowIndexes(Resource resource) throws SQLException {
-            String sql = "select start, id from `Row` where status = 1 and resource_id = " + resource.getId() + " order by start";
+            String sql = "select start, id from `Row` where resource_id = " + resource.getId() + " order by start";
             List<Map<String, Object>> result = databaseManager.query(sql);
             starts = new int[result.size()];
             ids = new Long[result.size()];

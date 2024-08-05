@@ -175,7 +175,7 @@ public class ResourceController extends EntityController<Resource> {
     }
 
     @GetMapping("{id}/analize")
-    public void analize(@PathVariable("id") Long id) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
+    public void analize(@PathVariable("id") Long id, @RequestParam Map<String, String> parameters) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         logManager.setMessage("crete analysis for " + entityClass().getSimpleName());
         Resource resource = resourceManager.load(id);
         if (resource == null) {
@@ -185,7 +185,7 @@ public class ResourceController extends EntityController<Resource> {
         logManager.appendMessage(resourceManager.getLog(resource));
         accessManager.checkAccess(resource, Action.WRITE);
         User user = accessManager.getUser();
-        analysisManager.analize(resource, user);
+        analysisManager.analize(resource, user, parameters);
     }
 
 }

@@ -27,7 +27,7 @@ public class PlainTextUploader extends Uploader {
     protected String upload(Resource resource, String source, Map<String, String> parameters) throws SQLException, ReflectiveOperationException, ManagerException {
         List<Entity> entities = new ArrayList<>();
         Section section = null;
-        if ("true".equalsIgnoreCase(parameters.get("section"))) {
+        if (!"false".equalsIgnoreCase(parameters.get("section"))) {
             SectionType sectionType = new SectionType();
             sectionType.setResource(resource);
             sectionType.setName(resource.getName());

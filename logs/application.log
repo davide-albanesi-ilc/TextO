@@ -1,83 +1,20 @@
-2024-06-08 14:46:32 INFO (admin) [void] create Resource null/Origini della Scienza parent not found
-2024-06-08 14:46:39 INFO (admin) [void] create Resource /Administrator/Origini della Scienza
-2024-06-08 14:51:58 INFO (admin) [void] upload Resource /Administrator/Origini della Scienza
-2024-06-08 15:07:03 ERROR (admin) [void] crete analysis for Resource /Administrator/Origini della Scienza
-java.lang.RuntimeException: java.nio.file.NoSuchFileException: /Users/oakgen/Desktop/conllu.txt
-	at it.cnr.ilc.texto.manager.AnalysisManager.analize(AnalysisManager.java:191)
-	at it.cnr.ilc.texto.controller.ResourceController.analysis(ResourceController.java:188)
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
-	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:188)
-	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118)
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:926)
-	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:831)
-	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
-	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)
-	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)
-	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)
-	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903)
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564)
-	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)
-	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:206)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150)
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150)
-	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150)
-	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150)
-	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201)
-	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:175)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:150)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:391)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:896)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1736)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1570)
-Caused by: java.nio.file.NoSuchFileException: /Users/oakgen/Desktop/conllu.txt
-	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
-	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:106)
-	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
-	at java.base/sun.nio.fs.UnixFileSystemProvider.newByteChannel(UnixFileSystemProvider.java:261)
-	at java.base/java.nio.file.Files.newByteChannel(Files.java:379)
-	at java.base/java.nio.file.Files.newByteChannel(Files.java:431)
-	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:420)
-	at java.base/java.nio.file.Files.newInputStream(Files.java:159)
-	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2902)
-	at java.base/java.nio.file.Files.readAllLines(Files.java:3397)
-	at java.base/java.nio.file.Files.readAllLines(Files.java:3438)
-	at it.cnr.ilc.texto.manager.AnalysisManager.analize(AnalysisManager.java:189)
-	... 49 common frames omitted
-2024-06-08 15:10:13 INFO (admin) [void] crete analysis for Resource /Administrator/Origini della Scienza
-2024-06-08 15:11:01 INFO (admin) [void] kwic query "lemma='portare'"
-2024-06-08 15:11:23 INFO (admin) [void] kwic query "lemma='porto'"
-2024-06-08 15:11:29 INFO (admin) [void] kwic query "lemma='sentire'"
-2024-06-08 15:11:46 INFO (admin) [void] kwic query "lemma='avere'"
-2024-06-08 15:12:06 INFO (admin) [void] kwic query "lemma='guerra'"
-2024-06-08 16:16:38 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get Resource /Administrator/Origini della Scienza
-2024-06-08 16:16:54 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get rows of Resource /Administrator/Origini della Scienza [0:5]
-2024-06-08 16:17:20 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get rows of Resource /Administrator/Origini della Scienza [0:100]
-2024-06-08 16:17:36 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get text of Resource /Administrator/Origini della Scienza [0:3]
-2024-06-08 16:18:20 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get text of Resource /Administrator/Origini della Scienza [3:49]
-2024-06-08 16:19:47 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get rows of Resource /Administrator/Origini della Scienza [0:5]
-2024-06-08 16:24:40 INFO (davide) [eyJ1c2VybmFtZSI6ImRhdmlkZSIsIm5h] get rows of Resource /Administrator/Origini della Scienza [0:13]
-2024-06-08 16:52:37 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get rows of Resource /Administrator/Origini della Scienza [0:13]
+2024-08-05 20:16:01 INFO (admin) [void] get Test list
+2024-08-05 20:16:15 INFO (admin) [void] create empty Test stringt required
+2024-08-05 20:16:38 INFO (admin) [void] create Test Davidone
+2024-08-05 20:17:11 INFO (admin) [void] update Test Donedone
+2024-08-05 20:19:31 INFO (admin) [void] update Test Done
+2024-08-05 20:22:08 INFO (admin) [void] update Test Donelotto
+2024-08-05 20:24:50 INFO (admin) [void] update Test Donelotto
+2024-08-05 20:30:36 INFO (admin) [void] remove Test Doneuccio
+2024-08-05 20:33:58 INFO (admin) [void] create Test Jessicuzza
+2024-08-05 20:36:18 INFO (admin) [void] remove Test Jessicuzza
+2024-08-05 20:38:16 INFO (admin) [void] create Test Tommasolo
+2024-08-05 20:38:31 INFO (admin) [void] get Test Tommasolo
+2024-08-05 20:50:08 INFO (admin) [void] get Resource list
+2024-08-05 20:50:43 INFO (admin) [void] create Resource /Administrator/Masolo
+2024-08-05 20:53:40 INFO (admin) [void] upload Resource /Administrator/Masolo
+2024-08-05 20:55:39 INFO (admin) [void] remove Resource /Administrator/Masolo
+2024-08-05 20:56:22 INFO (admin) [void] create Resource /Administrator/Nucciolo
+2024-08-05 20:58:20 INFO (admin) [void] upload Resource /Administrator/Nucciolo
+2024-08-05 20:59:55 INFO (admin) [void] get Resource /Administrator/Nucciolo
+2024-08-05 21:00:09 INFO (admin) [void] remove Resource /Administrator/Nucciolo

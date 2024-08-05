@@ -35,7 +35,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @SpringBootApplication
 @RestController
-@RequestMapping("")
+@RequestMapping("/")
 public class Application implements WebMvcConfigurer {
 
     public static void main(String[] args) throws IOException {

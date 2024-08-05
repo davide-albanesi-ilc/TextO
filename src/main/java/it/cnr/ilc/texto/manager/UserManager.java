@@ -1,6 +1,5 @@
 package it.cnr.ilc.texto.manager;
 
-import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
@@ -47,8 +46,7 @@ public class UserManager extends EntityManager<User> {
         sql.append("select * from ").append(quote(User.class)).append(" u ")
                 .append("join _credential c on c.user_id = u.id ")
                 .append("where u.username = '").append(username).append("' ")
-                .append("and c.password = upper(sha1('").append(password).append("')) ")
-                .append("and status = ").append(Status.VALID.ordinal());
+                .append("and c.password = upper(sha1('").append(password).append("'))");
         return domainManager.loadUnique(User.class, sql.toString());
     }
 

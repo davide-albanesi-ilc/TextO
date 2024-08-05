@@ -3,7 +3,7 @@ package it.cnr.ilc.texto.manager;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Row;
-import it.cnr.ilc.texto.domain.Status;
+import it.cnr.ilc.texto.domain.Section;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.ResourceManager.checkOffset;
 import it.cnr.ilc.texto.manager.annotation.Check;
@@ -24,6 +24,9 @@ public class RowManager extends EntityManager<Row> {
     @Lazy
     @Autowired
     private ResourceManager resourceManager;
+    @Lazy
+    @Autowired
+    private TokenManager tokenManager;
 
     @Override
     protected Class<Row> entityClass() {
@@ -35,8 +38,7 @@ public class RowManager extends EntityManager<Row> {
         if (row.getResource() == null || row.getStart() == null || row.getEnd() == null || row.getNumber() == null) {
             return "" + row.getId();
         } else {
-            return resourceManager.getLog(resourceManager.load(row.getResource().getId())) + " "
-                    + row.getNumber() + " [" + row.getStart() + "-" + row.getEnd() + "]";
+            return resourceManager.getLog(resourceManager.load(row.getResource().getId())) + " " + row.getNumber();
         }
     }
 
@@ -51,8 +53,7 @@ public class RowManager extends EntityManager<Row> {
         checkOffset(offset, resourceManager.getCharacterCount(resource));
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Row.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and resource_id = ").append(resource.getId())
+                .append(" where resource_id = ").append(resource.getId())
                 .append(" and start >= ").append(offset.start)
                 .append(" and end < ").append(offset.end)
                 .append(" order by start");
@@ -62,21 +63,19 @@ public class RowManager extends EntityManager<Row> {
     public Integer rowCount(Resource resource) throws SQLException, ManagerException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select count(id) from ").append(quote(Row.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and resource_id = ").append(resource.getId());
+                .append(" where resource_id = ").append(resource.getId());
         return databaseManager.queryFirst(sql.toString(), Number.class).intValue();
     }
 
-    private List<Row> load(Resource resource, Status status) throws SQLException, ReflectiveOperationException {
+    public List<Row> load(Section section) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Row.class))
-                .append(" where status = ").append(status.ordinal())
-                .append(" and resource_id = ").append(resource.getId());
+                .append(" where section_id = ").append(section.getId());
         return load(sql.toString());
     }
 
-    public void remove(Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
-        for (Row row : load(resource, Status.VALID)) {
+    public void remove(Section section) throws SQLException, ReflectiveOperationException, ManagerException {
+        for (Row row : load(section)) {
             remove(row);
         }
     }
