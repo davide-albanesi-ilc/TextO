@@ -2,7 +2,6 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
-import it.cnr.ilc.texto.domain.Status;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
@@ -44,8 +43,7 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
     public List<AnnotationFeature> load(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(AnnotationFeature.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and annotation_id = ").append(annotation.getId());
+                .append(" where annotation_id = ").append(annotation.getId());
         return load(sql.toString());
     }
 

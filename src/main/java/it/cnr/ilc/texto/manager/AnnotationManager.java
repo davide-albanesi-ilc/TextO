@@ -3,7 +3,6 @@ package it.cnr.ilc.texto.manager;
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
-import it.cnr.ilc.texto.domain.Status;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.ResourceManager.checkOffset;
 import it.cnr.ilc.texto.manager.annotation.Trigger;
@@ -57,8 +56,7 @@ public class AnnotationManager extends EntityManager<Annotation> {
         checkOffset(offset, resourceManager.getCharacterCount(resource));
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Annotation.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and resource_id = ").append(resource.getId())
+                .append(" where resource_id = ").append(resource.getId())
                 .append(" and start >= ").append(offset.start)
                 .append(" and end < ").append(offset.end)
                 .append(" order by start");

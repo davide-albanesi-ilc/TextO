@@ -113,7 +113,7 @@ public final class DatabaseManager extends Manager implements Closeable {
 
     public int update(String sql, Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
-            logger.debug(sql);
+            logger.debug(sql.replaceAll("\\s+", " "));
             return statement.executeUpdate(sql);
         }
     }

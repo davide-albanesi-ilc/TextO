@@ -1,7 +1,6 @@
 package it.cnr.ilc.texto.manager.access;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import it.cnr.ilc.texto.domain.Status;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
@@ -15,7 +14,7 @@ import java.util.Map;
 public abstract class JWTExternAccessImplementation extends ExternalAccessImplementation {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    
+
     @Override
     protected String retrieveToken(String token) throws Exception {
         if (!token.toLowerCase().startsWith("bearer")) {
@@ -31,8 +30,7 @@ public abstract class JWTExternAccessImplementation extends ExternalAccessImplem
         Map<String, Object> payload = mapper.readValue(token, Map.class);
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(User.class))
-                .append(" where status = ").append(Status.VALID.ordinal())
-                .append(" and username = '").append(retrieveUsername(payload)).append("'");
+                .append(" where username = '").append(retrieveUsername(payload)).append("'");
         User user = domainManager.loadUnique(User.class, sql.toString());
         if (user == null) {
             user = retrieveUser(payload);

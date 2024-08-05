@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
-import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import java.net.URISyntaxException;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
@@ -58,8 +57,8 @@ public class DatabaseCreator {
     public String getScript() {
         StringBuilder builder = new StringBuilder();
         builder.append("SET FOREIGN_KEY_CHECKS=0;\n\n");
-        builder.append(entitiesClasses.stream().map(c -> getDropTable(c)).collect(Collectors.joining(""))).append("\n");
-        builder.append(entitiesClasses.stream().map(c -> getCreationTable(c)).collect(Collectors.joining(""))).append("\n");
+        builder.append(entitiesClasses.stream().map(c -> getCreationTable(c)).collect(Collectors.joining("\n"))).append("\n");
+        builder.append(entitiesClasses.stream().map(c -> getCreationHistory(c)).collect(Collectors.joining("\n"))).append("\n");
         builder.append(entitiesClasses.stream().map(c -> getCreationConstraint(c)).filter(s -> !s.isEmpty()).collect(Collectors.joining(""))).append("\n");
         builder.append(entitiesClasses.stream().map(c -> getCreationIndex(c)).filter(s -> !s.isEmpty()).collect(Collectors.joining(""))).append("\n");
         builder.append(getExtraCreation()).append("\n");
@@ -67,14 +66,9 @@ public class DatabaseCreator {
         return builder.toString();
     }
 
-    private String getDropTable(Class<? extends Entity> clazz) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("drop table if exists `").append(clazz.getSimpleName()).append("`;\n");
-        return builder.toString();
-    }
-
     private String getCreationTable(Class<? extends Entity> clazz) {
         StringBuilder builder = new StringBuilder();
+        builder.append("drop table if exists `").append(clazz.getSimpleName()).append("`;\n");
         builder.append("create table `").append(clazz.getSimpleName()).append("` (\n")
                 .append(" id bigint not null,\n")
                 .append(" status tinyint not null,\n")
@@ -82,13 +76,13 @@ public class DatabaseCreator {
         Entity.getters(clazz).stream()
                 .map(m -> getCreationField(m))
                 .forEach(s -> builder.append(s));
-        builder.append(" primary key(id, status, time)\n);\n");
+        builder.append(" primary key(id)\n);\n");
         return builder.toString();
     }
 
     private String getCreationField(Method method) {
         StringBuilder builder = new StringBuilder();
-        builder.append(" ").append(quote(getSQLField(method))).append(" ").append(getSQLType(method));
+        builder.append(" `").append(getSQLField(method)).append("` ").append(getSQLType(method));
         if (method.isAnnotationPresent(Required.class) && method.getAnnotation(Required.class).database()) {
             builder.append(" not null");
         }
@@ -115,6 +109,20 @@ public class DatabaseCreator {
         }
     }
 
+    private String getCreationHistory(Class<? extends Entity> clazz) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("drop table if exists `").append(clazz.getSimpleName()).append("_`;\n");
+        builder.append("create table `").append(clazz.getSimpleName()).append("_` (\n")
+                .append(" id bigint not null,\n")
+                .append(" status tinyint not null,\n")
+                .append(" time datetime not null,\n");
+        Entity.getters(clazz).stream()
+                .map(m -> getCreationField(m))
+                .forEach(s -> builder.append(s));
+        builder.append(" primary key(id, status, time)\n);\n");
+        return builder.toString();
+    }
+
     private String getCreationConstraint(Class<? extends Entity> clazz) {
         StringBuilder builder = new StringBuilder();
         Entity.getters(clazz).stream()
@@ -128,7 +136,7 @@ public class DatabaseCreator {
         StringBuilder builder = new StringBuilder();
         builder.append("alter table `").append(method.getDeclaringClass().getSimpleName()).append("`")
                 .append(" add constraint fk_").append(method.getDeclaringClass().getSimpleName()).append("_").append(getSQLField(method))
-                .append(" foreign key (").append(quote(getSQLField(method))).append(")")
+                .append(" foreign key (`").append(getSQLField(method)).append("`)")
                 .append(" references `").append(method.getReturnType().getSimpleName()).append("`(id);\n");
         return builder.toString();
     }
@@ -151,7 +159,7 @@ public class DatabaseCreator {
             String field = getSQLField(method);
             String group = Stream.concat(Stream.of(field), Arrays.stream(indexed.group())).collect(Collectors.joining(", "));
             builder.append("create index index_").append(table).append("_").append(name)
-                    .append(" on ").append(quote(table)).append("(").append(group).append(");\n");
+                    .append(" on `").append(table).append("` (").append(group).append(");\n");
         }
         return builder.toString();
     }
@@ -164,22 +172,9 @@ public class DatabaseCreator {
                 .append("drop table if exists _access;\n")
                 .append("create table _access (topic varchar(25), role varchar(25), action varchar(25), level varchar(25));\n\n")
                 .append("drop table if exists _credential;\n")
-                .append("create table _credential (user_id bigint unique, password varchar(50));\n")
-                .append("alter table _credential add constraint fk_credential_user_id foreign key (user_id) references User(id);\n\n")
+                .append("create table _credential (user_id bigint primary key, password varchar(50));\n")
                 .append("drop table if exists _text;\n")
-                .append("create table _text (resource_id bigint unique, text longtext);\n")
-                .append("alter table _text add constraint fk_text_resource_id foreign key (resource_id) references Resource(id);\n\n")
-                .append("drop table if exists _token;\n")
-                .append("create table _token (resource_id bigint, row_id bigint, number int, start int, end int, primary key (resource_id, number));\n")
-                .append("alter table _token add constraint fk_token_resource_id foreign key (resource_id) references Resource(id);\n")
-                .append("alter table _token add constraint fk_token_row_id foreign key (row_id) references `Row`(id);\n")
-                .append("drop table if exists _analysis;\n")
-                .append("create table _analysis (resource_id bigint, number int, token varchar(255), form varchar(255), lemma varchar(255), pos varchar(255));\n")
-                .append("alter table _analysis add constraint fk_analysis_token_id foreign key (resource_id, number) references _token(resource_id, number);\n")
-                .append("create index index_analysis_token on _analysis(resource_id, token);\n")
-                .append("create index index_analysis_form on _analysis(resource_id, form);\n")
-                .append("create index index_analysis_lemma on _analysis(resource_id, lemma);\n")
-                .append("create index index_analysis_pos on _analysis(resource_id, pos);");
+                .append("create table _text (resource_id bigint primary key, text longtext);\n");
         return builder.toString();
     }
 

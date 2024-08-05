@@ -1,5 +1,7 @@
 package it.cnr.ilc.texto.domain;
 
+import it.cnr.ilc.texto.domain.annotation.Required;
+import it.cnr.ilc.texto.domain.annotation.Unique;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -27,6 +29,8 @@ public class Test extends Entity {
     private TestEnum enumt;
     private Test next;
 
+    @Unique
+    @Required
     public String getStringt() {
         return stringt;
     }

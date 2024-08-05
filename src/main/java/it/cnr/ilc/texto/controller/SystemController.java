@@ -5,12 +5,10 @@ import it.cnr.ilc.texto.manager.AccessManager.Session;
 import it.cnr.ilc.texto.manager.AnalysisManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
-import it.cnr.ilc.texto.util.DatabaseCreator;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -41,6 +39,7 @@ public class SystemController extends Controller {
         Map<String, Object> info = new LinkedHashMap<>();
         info.put("application.name", environment.getProperty("application.name"));
         info.put("application.version", environment.getProperty("application.version"));
+        info.put("server.time", LocalDateTime.now());
         return info;
     }
 
