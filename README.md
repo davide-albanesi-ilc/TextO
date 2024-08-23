@@ -87,9 +87,9 @@ In the properties file, there are only the entries that are intended to be modif
 
 `resource.default-uploader=plain-text`  
 
-`analysis.default-analyzer=opennlp-tokenizer`
-`analysis.default-lang=it`
-`analysis.stanza-path=~/stanza_resources`
+`analysis.default-analyzer=opennlp-tokenizer`  
+`analysis.default-lang=it`  
+`analysis.stanza-path=~/stanza_resources`  
 
 `search.default-width=10`  
 
