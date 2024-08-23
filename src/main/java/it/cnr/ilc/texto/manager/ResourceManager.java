@@ -14,6 +14,7 @@ import it.cnr.ilc.texto.manager.annotation.Trigger.Event;
 import it.cnr.ilc.texto.manager.uploader.PlainTextUploader;
 import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -50,14 +51,16 @@ public class ResourceManager extends EntityManager<Resource> {
     private final Map<String, Uploader> uploaders = new HashMap<>();
 
     @PostConstruct
-    private void initUploader() throws Exception {
+    private void initUploaders() throws Exception {
         Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(PlainTextUploader.class.getPackageName()));
         Collection<Class<? extends Uploader>> classes = reflections.getSubTypesOf(Uploader.class);
         for (Class<? extends Uploader> clazz : classes) {
-            Uploader uploader = clazz.getConstructor().newInstance();
-            uploader.init(environment, databaseManager, domainManager, monitorManager);
-            uploader.init();
-            uploaders.put(uploader.name(), uploader);
+            if (!Modifier.isAbstract(clazz.getModifiers())) {
+                Uploader uploader = clazz.getConstructor().newInstance();
+                uploader.init(environment, databaseManager, domainManager, monitorManager);
+                uploader.init();
+                uploaders.put(uploader.name(), uploader);
+            }
         }
     }
 

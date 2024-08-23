@@ -3,6 +3,7 @@ package it.cnr.ilc.texto.controller;
 import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.Folder;
+import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Row;
@@ -11,6 +12,7 @@ import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.AnalysisManager;
 import it.cnr.ilc.texto.manager.AnnotationManager;
 import it.cnr.ilc.texto.manager.EntityManager;
+import it.cnr.ilc.texto.manager.LayerManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.manager.ResourceManager;
@@ -25,9 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,6 +53,8 @@ public class ResourceController extends EntityController<Resource> {
     private RowManager rowManager;
     @Autowired
     private AnnotationManager annotationManager;
+    @Autowired
+    private LayerManager layerManager;
     @Autowired
     private AnalysisManager analysisManager;
 
@@ -174,9 +180,36 @@ public class ResourceController extends EntityController<Resource> {
         return annotationManager.load(resource, offset);
     }
 
-    @GetMapping("{id}/analize")
-    public void analize(@PathVariable("id") Long id, @RequestParam Map<String, String> parameters) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
-        logManager.setMessage("crete analysis for " + entityClass().getSimpleName());
+    @PostMapping("{id}/annotations/import")
+    public void importAnnotations(@PathVariable("id") Long id, @RequestBody String content) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
+        logManager.setMessage("import annotations on " + entityClass().getSimpleName());
+        Resource resource = resourceManager.load(id);
+        if (resource == null) {
+            logManager.appendMessage("" + id);
+            throw new ManagerException("not found");
+        }
+        logManager.appendMessage(resourceManager.getLog(resource));
+        accessManager.checkAccess(Annotation.class, Action.WRITE);
+        accessManager.checkAccess(resource, Action.WRITE);
+        List<String> layerNames = content.lines().filter(l -> l.startsWith("Annotation\t")).map(l -> l.split("\t")[1]).distinct().toList();
+        Layer layer;
+        for (String layerName : layerNames) {
+            layer = layerManager.loadUnique("select * from Layer where name = '" + layerName + "'");
+            accessManager.checkAccess(layer, Action.WRITE);
+        }
+        User user = accessManager.getUser();
+        annotationManager.importAnnotations(resource, content.lines().toList(), user);
+    }
+
+    @GetMapping("analyzers")
+    public Set<String> analyzers() throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
+        logManager.setMessage("get analyzers");
+        return analysisManager.getAnalyzers();
+    }
+
+    @GetMapping("{id}/analyze")
+    public void analyze(@PathVariable("id") Long id, @RequestParam Map<String, String> parameters) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
+        logManager.setMessage("create analysis for " + entityClass().getSimpleName());
         Resource resource = resourceManager.load(id);
         if (resource == null) {
             logManager.appendMessage("" + id);
@@ -185,7 +218,33 @@ public class ResourceController extends EntityController<Resource> {
         logManager.appendMessage(resourceManager.getLog(resource));
         accessManager.checkAccess(resource, Action.WRITE);
         User user = accessManager.getUser();
-        analysisManager.analize(resource, user, parameters);
+        analysisManager.analyze(resource, user, parameters);
+    }
+
+    @GetMapping("{id}/analyzed")
+    public boolean isAnalyzed(@PathVariable("id") Long id) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
+        logManager.setMessage("get analyzed " + entityClass().getSimpleName());
+        Resource resource = resourceManager.load(id);
+        if (resource == null) {
+            logManager.appendMessage("" + id);
+            throw new ManagerException("not found");
+        }
+        logManager.appendMessage(resourceManager.getLog(resource));
+        accessManager.checkAccess(resource, Action.READ);
+        return analysisManager.isAnalyze(resource);
+    }
+
+    @DeleteMapping("{id}/analysis")
+    public void removeAnalysis(@PathVariable("id") Long id) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
+        logManager.setMessage("remove analysis " + entityClass().getSimpleName());
+        Resource resource = resourceManager.load(id);
+        if (resource == null) {
+            logManager.appendMessage("" + id);
+            throw new ManagerException("not found");
+        }
+        logManager.appendMessage(resourceManager.getLog(resource));
+        accessManager.checkAccess(resource, Action.WRITE);
+        analysisManager.removeAnalysis(resource);
     }
 
 }

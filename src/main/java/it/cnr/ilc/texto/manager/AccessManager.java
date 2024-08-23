@@ -221,27 +221,41 @@ public class AccessManager extends Manager implements Closeable {
     }
 
     public void checkAccess(Class clazz, Action action) throws ForbiddenException {
-        User user = getUser();
-        Level level = getLevel(clazz.getSimpleName(), action, user);
-        if (level == null || !level.equals(Level.FULL)) {
+        if (!hasAccess(clazz, action)) {
             throw new ForbiddenException();
         }
     }
 
+    public boolean hasAccess(Class clazz, Action action) {
+        User user = getUser();
+        Level level = getLevel(clazz.getSimpleName(), action, user);
+        if (level == null || !level.equals(Level.FULL)) {
+            return false;
+        }
+        return true;
+    }
+
     public void checkAccess(Entity entity, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException {
+        if (!hasAccess(entity, action)) {
+            throw new ForbiddenException();
+        }
+    }
+
+    public boolean hasAccess(Entity entity, Action action) throws ReflectiveOperationException, SQLException {
         User user = getUser();
         Level level = getLevel(entity.getClass().getSimpleName(), action, user);
         if (level == null || level.equals(Level.NONE)) {
-            throw new ForbiddenException();
+            return false;
         } else if (level.equals(Level.MINE)) {
             if (!checkMine(entity, user)) {
-                throw new ForbiddenException();
+                return false;
             }
         } else if (level.equals(Level.SHARE)) {
             if (!checkMine(entity, user) && !checkShare(entity, user, action)) {
-                throw new ForbiddenException();
+                return false;
             }
         }
+        return true;
     }
 
     private boolean checkMine(Entity entity, User user) {

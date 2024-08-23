@@ -5,8 +5,6 @@ import it.cnr.ilc.texto.manager.AccessManager.Session;
 import it.cnr.ilc.texto.manager.AnalysisManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -73,9 +71,10 @@ public class SystemController extends Controller {
     }
 
     @GetMapping("init/analysis")
-    public void initAnalysis() throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException, IOException, URISyntaxException, InterruptedException {
+    public void initAnalysis() throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         accessManager.checkAccess(System.class, Action.WRITE);
         logManager.setMessage("init analysis layers");
         analysisManager.initLayers();
     }
+
 }
