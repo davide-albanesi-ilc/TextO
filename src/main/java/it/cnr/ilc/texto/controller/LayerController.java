@@ -1,16 +1,20 @@
 package it.cnr.ilc.texto.controller;
 
+import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.manager.EntityManager;
 import it.cnr.ilc.texto.manager.FeatureManager;
 import it.cnr.ilc.texto.manager.LayerManager;
+import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,4 +53,11 @@ public class LayerController extends EntityController<Layer> {
         return featureManager.load(layer);
     }
 
+    @PostMapping("import")
+    public void importLayers(@RequestBody String content) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
+        accessManager.checkAccess(Layer.class, Action.WRITE);
+        logManager.setMessage("import layers");
+        layerManager.importLayers(content.lines().toList());
+    }
+    
 }
