@@ -55,9 +55,6 @@ public abstract class ConlluAnalyzer extends Analyzer {
                 entities.add(annotationFeature);
                 sentenceStart = -1;
             } else if (!line.isEmpty() && !line.startsWith("#")) {
-                if (sentenceStart == -1) {
-                    sentenceStart = start;
-                }
                 split = line.split("\\t");
                 // TOKEN
                 if (!split[9].equals("_")) {
@@ -178,6 +175,9 @@ public abstract class ConlluAnalyzer extends Analyzer {
                     analysis.setLemma(lemma);
                     analysis.setPos(pos);
                     entities.add(analysis);
+                }
+                if (sentenceStart == -1) {
+                    sentenceStart = start;
                 }
             }
             monitorManager.next();

@@ -1,0 +1,14 @@
+2025-02-03 13:31:30 : select * from `User` where id = 4
+2025-02-03 13:31:30 : select a.topic, a.action, r.id role, a.level from _access a join `Role` r on a.role = r.name
+2025-02-03 13:31:30 : select * from `Layer` where name = 'Token'
+2025-02-03 13:31:30 : select * from `Layer` where name = 'Sentence'
+2025-02-03 13:31:30 : select * from `Layer` where name = 'Form'
+2025-02-03 13:31:30 : select * from `Layer` where name = 'Lemma'
+2025-02-03 13:31:30 : select * from `Layer` where name = 'POS'
+2025-02-03 13:31:30 : select * from `Layer` where name = 'Feats'
+2025-02-03 13:31:30 : select * from `Feature` where layer_id = 6
+2025-02-03 13:31:30 : select * from `Feature` where layer_id = 8
+2025-02-03 13:31:30 : select * from `Feature` where layer_id = 11
+2025-02-03 13:31:30 : select * from `Feature` where layer_id = 14
+2025-02-03 13:31:30 : select * from `Feature` where layer_id = 16
+2025-02-03 13:31:30 : select * from `Feature` where layer_id = 36
