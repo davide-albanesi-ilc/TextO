@@ -1,3 +1,6 @@
-2024-12-20 11:03:05 INFO (admin) [void] create analysis for Resource /Administrator/VE_1579 already analyzed
-2024-12-20 11:04:36 INFO (admin) [void] remove analysis Resource /Administrator/VE_1579
-2024-12-20 12:03:02 INFO (admin) [void] create analysis for Resource /Administrator/VE_1579
+2025-06-10 14:19:45 INFO (admin) [void] get AnnotationFeature list where value='ciccioloso'
+2025-06-10 14:23:48 INFO (admin) [void] get AnnotationFeature list where value='http://lexica/mylexicon#LexO_2024-05-0809_51_20_468'
+2025-06-10 14:25:22 INFO (admin) [void] get AnnotationFeature list where value='http://lexica/mylexicon#LexO_2024-05-0809_51_20_468'
+2025-06-10 14:27:51 INFO (admin) [void] get AnnotationFeature list where value='http://lexica/mylexicon#LexO_2024-05-0809_51_20_468'
+2025-06-10 14:28:55 INFO (admin) [void] get AnnotationFeature list where value='http://lexica/mylexicon#LexO_2024-05-0809_51_20_4681'
+2025-06-10 14:29:02 INFO (admin) [void] get AnnotationFeature list where value='http://lexica/mylexicon#LexO_2024-05-0809_51_20_468'

@@ -25,7 +25,8 @@ public class Annotation extends Entity implements Userable {
     }
 
     @Required
-    @Indexed(name = "offset", group = {"start", "end"})
+    @Indexed(name = "offset_start", group = {"start"})
+    @Indexed(name = "offset_end", group = {"end"})
     public Resource getResource() {
         return resource;
     }

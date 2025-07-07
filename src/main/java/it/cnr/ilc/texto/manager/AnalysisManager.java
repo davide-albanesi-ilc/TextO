@@ -48,6 +48,9 @@ public class AnalysisManager extends EntityManager<Analysis> {
     @Lazy
     @Autowired
     private LayerManager layerManager;
+    @Lazy
+    @Autowired
+    private SectionManager sectionManager;
 
     private final Map<String, Analyzer> analyzers = new HashMap<>();
 
@@ -186,6 +189,9 @@ public class AnalysisManager extends EntityManager<Analysis> {
     public void analyze(Resource resource, User user, Map<String, String> parameters) throws SQLException, ReflectiveOperationException, ManagerException {
         if (tokenLayer == null) {
             throw new ManagerException("analysis layers have not been initialized");
+        }
+        if (sectionManager.load(resource).isEmpty()) {
+            throw new ManagerException("resource have not a valid section");
         }
         String name = parameters.getOrDefault("analyzer", environment.getProperty("analysis.default-analyzer", "opennlp-tokenizer"));
         Analyzer analyzer = analyzers.get(name);

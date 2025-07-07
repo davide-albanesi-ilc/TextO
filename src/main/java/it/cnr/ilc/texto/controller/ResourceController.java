@@ -195,6 +195,9 @@ public class ResourceController extends EntityController<Resource> {
         Layer layer;
         for (String layerName : layerNames) {
             layer = layerManager.loadUnique("select * from Layer where name = '" + layerName + "'");
+            if (layer == null) {
+                throw new ManagerException("layer '" + layerName + "' not found");
+            }
             accessManager.checkAccess(layer, Action.WRITE);
         }
         User user = accessManager.getUser();

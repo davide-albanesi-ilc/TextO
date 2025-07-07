@@ -1,9 +1,17 @@
 package it.cnr.ilc.texto.manager.access;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Map;
 
@@ -14,14 +22,47 @@ import java.util.Map;
 public abstract class JWTExternAccessImplementation extends ExternalAccessImplementation {
 
     private final ObjectMapper mapper = new ObjectMapper();
+    private String publicKey;
 
     @Override
     protected String retrieveToken(String token) throws Exception {
         if (!token.toLowerCase().startsWith("bearer")) {
             throw new AuthorizationException("invalid authorization parameter");
         }
-        String[] chunks = token.substring(6).trim().split("\\.");
+        token = token.substring(6).trim();
+        validate(token);
+        String[] chunks = token.split("\\.");
         return chunks[1];
+    }
+
+    private String loadPublicKey() throws AuthorizationException {
+        if (publicKey == null) {
+            try (InputStream input = JWTExternAccessImplementation.class.getResourceAsStream("/public.pem")) {
+                publicKey = new String(input.readAllBytes())
+                        .replaceAll("-----.*-----", "")
+                        .replaceAll("\n", "");
+            } catch (IOException e) {
+                throw new AuthorizationException("public key not found");
+            }
+        }
+        return publicKey;
+    }
+
+    private Claims validate(String jwtToken) throws AuthorizationException {
+        loadPublicKey();
+        String algorithm = environment.getProperty("jwt.algorithm", "RSA");
+        try {
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey));
+            KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
+            PublicKey key = keyFactory.generatePublic(keySpec);
+            Jws<Claims> jwt = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(jwtToken);
+            return jwt.getPayload();
+        } catch (Exception e) {
+            throw new AuthorizationException("jwt error");
+        }
     }
 
     @Override

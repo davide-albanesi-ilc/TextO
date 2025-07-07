@@ -1,11 +1,11 @@
 Layer	Sentence	Sentence	wheat
 Feature	Id	Sentence id	STRING
 
-Layer	Token	Token	lightgray
+Layer	Token	Token	gainsboro
 Feature	Id	Token id	STRING
 Feature	Token	Token	STRING
 
-Layer	Form	Form	lightgreen
+Layer	Form	Form	palegreen
 Feature	Id	Word id	STRING
 Feature	Form	Form	STRING
 
