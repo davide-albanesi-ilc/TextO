@@ -25,6 +25,7 @@ public class PlainTextUploader extends Uploader {
 
     @Override
     protected String upload(Resource resource, String source, Map<String, String> parameters) throws SQLException, ReflectiveOperationException, ManagerException {
+        source = source.replaceAll("\r", "");
         List<Entity> entities = new ArrayList<>();
         Section section = null;
         if (!"false".equalsIgnoreCase(parameters.get("section"))) {
@@ -41,7 +42,6 @@ public class PlainTextUploader extends Uploader {
             section.setEnd(source.length());
             entities.add(section);
         }
-        source = source.replaceAll("\r", "");
         int start = 0;
         int end = source.indexOf("\n");
         int number = 0;

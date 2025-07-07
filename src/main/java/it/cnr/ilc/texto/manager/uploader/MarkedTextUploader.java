@@ -77,9 +77,7 @@ public class MarkedTextUploader extends Uploader {
             previous.setEnd(source.length() - minus);
             previous = previous.getParent();
         }
-        for (Section section : sections) {
-            domainManager.create(section);
-        }
+        domainManager.create(sections);
         source = matcher.replaceAll("");
         if ("false".equalsIgnoreCase(parameters.get("splitline"))) {
             insertSectionRows(sections);
@@ -112,6 +110,7 @@ public class MarkedTextUploader extends Uploader {
     }
 
     private void insertSplittedRows(List<Section> sections, String source) throws SQLException, ReflectiveOperationException, ManagerException {
+        List<Row> rows = new ArrayList<>();
         int s = 0;
         Section section = sections.get(s++);
         while (section.getStart().equals(sections.get(s).getStart())) {
@@ -129,7 +128,7 @@ public class MarkedTextUploader extends Uploader {
             row.setRelative(relative++);
             row.setStart(start);
             row.setEnd(end + 1);
-            domainManager.create(row);
+            rows.add(row);
             start = end + 1;
             end = source.indexOf("\n", start, (s < sections.size() ? sections.get(s).getStart() : section.getEnd()));
             if (end == -1) {
@@ -143,9 +142,11 @@ public class MarkedTextUploader extends Uploader {
                 }
             }
         }
+        domainManager.create(rows);
     }
 
     private void insertSectionRows(List<Section> sections) throws SQLException, ReflectiveOperationException, ManagerException {
+        List<Row> rows = new ArrayList<>();
         int s = 0;
         int number = 0;
         while (s < sections.size()) {
@@ -160,9 +161,10 @@ public class MarkedTextUploader extends Uploader {
             row.setRelative(0);
             row.setStart(section.getStart());
             row.setEnd(s + 1 < sections.size() ? sections.get(s + 1).getStart() : section.getEnd());
-            domainManager.create(row);
+            rows.add(row);
             s++;
         }
+        domainManager.create(rows);
     }
 
 }

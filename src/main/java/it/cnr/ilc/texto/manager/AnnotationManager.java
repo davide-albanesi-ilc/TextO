@@ -105,4 +105,5 @@ public class AnnotationManager extends EntityManager<Annotation> {
         }
         domainManager.create(entities);
     }
+
 }

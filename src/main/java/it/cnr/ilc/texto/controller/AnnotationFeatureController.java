@@ -35,6 +35,11 @@ public class AnnotationFeatureController extends EntityController<AnnotationFeat
     }
 
     @Override
+    protected void checkAccess(Action action) throws ForbiddenException, ManagerException {
+        annotationController.checkAccess(action);
+    }
+
+    @Override
     protected void checkAccess(AnnotationFeature annotationFeature, Action action) throws ForbiddenException, ReflectiveOperationException, SQLException, ManagerException {
         if (annotationFeature.getAnnotation() != null) {
             annotationController.checkAccess(annotationFeature.getAnnotation(), action.equals(Action.READ) ? Action.READ : Action.WRITE);
