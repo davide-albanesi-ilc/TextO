@@ -160,22 +160,22 @@ public class ResourceManager extends EntityManager<Resource> {
         StringBuilder sql = new StringBuilder();
         sql.append("select min(start) start, max(end) end from ").append(quote(Row.class))
                 .append(" where resource_id = ").append(resource.getId())
-                .append(" and number >= ").append(offset.start).append(" and number < ").append(offset.end);
+                .append(" and number >= ").append(offset.getStart()).append(" and number < ").append(offset.getEnd());
         Map<String, Object> record = databaseManager.queryFirst(sql.toString());
         Offset abbsolute = new Offset();
-        abbsolute.start = ((Number) record.get("start")).intValue();
-        abbsolute.end = ((Number) record.get("end")).intValue();
+        abbsolute.setStart(((Number) record.get("start")).intValue());
+        abbsolute.setEnd(((Number) record.get("end")).intValue());
         return abbsolute;
     }
 
-    public static int checkOffset(Offset offset, int length) throws SQLException, ManagerException {
-        if (offset.start == null) {
-            offset.start = 0;
+    public static int checkOffset(Offset offset, int length) throws ManagerException {
+        if (offset.getStart() == null) {
+            offset.setStart(0);
         }
-        if (offset.end == null) {
-            offset.end = length;
+        if (offset.getEnd() == null) {
+            offset.setEnd(length);
         }
-        if (offset.start < 0 || offset.start > length || offset.end < 0 || offset.start > offset.end) {
+        if (offset.getStart() < 0 || offset.getStart() > length || offset.getEnd() < 0 || offset.getStart() > offset.getEnd()) {
             throw new ManagerException("index out of bounds");
         }
         return length;
@@ -190,7 +190,7 @@ public class ResourceManager extends EntityManager<Resource> {
         checkOffset(offset, getCharacterCount(resource));
         StringBuilder sql = new StringBuilder();
         sql.append("select substr(text, ")
-                .append(offset.start + 1).append(", ").append(offset.end - offset.start)
+                .append(offset.getStart() + 1).append(", ").append(offset.getEnd() - offset.getStart())
                 .append(") from _text where resource_id = ").append(resource.getId());
         return databaseManager.queryFirst(sql.toString(), String.class);
     }

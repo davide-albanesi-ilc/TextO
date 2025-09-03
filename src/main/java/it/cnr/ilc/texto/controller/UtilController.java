@@ -1,16 +1,20 @@
 package it.cnr.ilc.texto.controller;
 
 import it.cnr.ilc.texto.domain.Action;
+import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Section;
+import it.cnr.ilc.texto.manager.AnalysisManager;
+import it.cnr.ilc.texto.manager.FeatureManager;
 import it.cnr.ilc.texto.manager.LayerManager;
 import it.cnr.ilc.texto.manager.ResourceManager;
 import it.cnr.ilc.texto.manager.SectionManager;
 import it.cnr.ilc.texto.manager.UtilManager;
 import it.cnr.ilc.texto.manager.exception.ForbiddenException;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
+import it.cnr.ilc.texto.util.Pair;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,10 @@ public class UtilController extends Controller {
     private SectionManager sectionManager;
     @Autowired
     private LayerManager layerManager;
+    @Autowired
+    private FeatureManager featureManager;
+    @Autowired
+    private AnalysisManager analysisManager;
 
     @GetMapping("resource/{id}/sections")
     public List<Map<String, Object>> sections(@PathVariable("id") Long id, @RequestParam(required = false) boolean lazy) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
@@ -128,19 +136,34 @@ public class UtilController extends Controller {
             }
             accessManager.checkAccess(layer, Action.READ);
         }
+        List<Pair<Feature, String[]>> features = new ArrayList<>();
+        Feature feature;
+        if (request.features != null) {
+            for (KwicFeatureFiler featureFilter : request.features) {
+                if ((feature = featureManager.load(featureFilter.feature)) == null) {
+                    throw new ManagerException("feature not found");
+                }
+                accessManager.checkAccess(feature.getLayer(), Action.READ);
+                features.add(new Pair<>(feature, featureFilter.values));
+            }
+        }
         KwicRequest requestCache = (KwicRequest) accessManager.getSession().getCache().get("kwicRequest");
         List<Map<String, Object>> data = (List<Map<String, Object>>) accessManager.getSession().getCache().get("kwicData");
         if (requestCache != null && data != null && !request.hasToRelaod(requestCache)) {
             return data;
         } else {
-            data = utilManager.kwic(resources, layer, request.query, request.width);
+            data = utilManager.kwic(resources, request.query, request.width, layer, features);
             accessManager.getSession().getCache().put("kwicRequest", request);
             accessManager.getSession().getCache().put("kwicData", data);
             return data;
         }
     }
 
-    public static record KwicRequest(List<Long> resources, Long layer, String query, Integer width, Boolean reload) {
+    public static record KwicFeatureFiler(Long feature, String[] values) {
+
+    }
+
+    public static record KwicRequest(List<Long> resources, String query, Integer width, Boolean reload, Long layer, List<KwicFeatureFiler> features) {
 
         private boolean hasToRelaod(KwicRequest cache) {
             return cache == null
@@ -152,7 +175,8 @@ public class UtilController extends Controller {
                     || (this.width == null && cache.width != null)
                     || (this.width != null && !this.width.equals(cache.width))
                     || (this.query == null && cache.query != null)
-                    || (this.query != null && !this.query.equals(cache.query));
+                    || (this.query != null && !this.query.equals(cache.query))
+                    || (this.features != null && !this.features.equals(cache.features));
         }
     }
 
@@ -273,5 +297,35 @@ public class UtilController extends Controller {
             }
         }
         return layers;
+    }
+
+    public static record Upos(String name, String description) {
+
+    }
+
+    @GetMapping("upos")
+    public List<Map<String, Object>> upos() throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
+        logManager.setMessage("get upos list").appendMessage(Resource.class);
+        return analysisManager.getUpos();
+    }
+
+    public static record FeatureValueRequest(List<Long> resources, String query, Long feature) {
+
+    }
+
+    @PostMapping("feature-values")
+    public List<String> featureValues(@RequestBody FeatureValueRequest request) throws ReflectiveOperationException, SQLException, ManagerException, ForbiddenException {
+        logManager.setMessage("feature values query").appendMessage("\"" + request.query + "\"");
+        List<Resource> resources = checkResources(request.resources);
+        if (request.feature == null) {
+            throw new ManagerException("missing feature");
+        }
+        Feature feature = featureManager.load(request.feature);
+        if (feature == null) {
+            throw new ManagerException("feature not found");
+        }
+        logManager.appendMessage(" for feature ").appendMessage(featureManager.getLog(feature));
+        accessManager.checkAccess(feature.getLayer(), Action.READ);
+        return utilManager.featureValues(resources, request.query, feature);
     }
 }
