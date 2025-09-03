@@ -69,8 +69,8 @@ public class AnnotationManager extends EntityManager<Annotation> {
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(Annotation.class))
                 .append(" where resource_id = ").append(resource.getId())
-                .append(" and start >= ").append(offset.start)
-                .append(" and end < ").append(offset.end)
+                .append(" and start >= ").append(offset.getStart())
+                .append(" and end < ").append(offset.getEnd())
                 .append(" order by start");
         return load(sql.toString());
     }

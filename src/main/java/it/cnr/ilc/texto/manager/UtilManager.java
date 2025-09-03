@@ -15,6 +15,7 @@ import it.cnr.ilc.texto.domain.SectionType;
 import it.cnr.ilc.texto.domain.Token;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.ResourceManager.checkOffset;
+import it.cnr.ilc.texto.util.Pair;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +47,7 @@ public class UtilManager extends Manager {
                 .append("from ").append(quote(Row.class)).append(" r\n")
                 .append("left join ").append(quote(Section.class)).append(" s on s.id = r.section_id\n")
                 .append("where r.resource_id = ").append(resource.getId())
-                .append(" and r.number >= ").append(offset.start).append(" and r.number < ").append(offset.end).append("\n")
+                .append(" and r.number >= ").append(offset.getStart()).append(" and r.number < ").append(offset.getEnd()).append("\n")
                 .append("order by r.number");
         List<Map<String, Object>> rows = databaseManager.query(sql.toString());
         String text = rows.isEmpty() ? "" : resourceManager.getText(resource);
@@ -54,8 +56,8 @@ public class UtilManager extends Manager {
                 .toList();
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("count", length);
-        map.put("start", offset.start);
-        map.put("end", offset.end);
+        map.put("start", offset.getStart());
+        map.put("end", offset.getEnd());
         map.put("data", rows);
         return map;
     }
@@ -130,7 +132,7 @@ public class UtilManager extends Manager {
                 .append("from ").append(quote(Annotation.class)).append(" a\n")
                 .append("left join ").append(quote(AnnotationFeature.class)).append(" af on af.annotation_id = a.id\n")
                 .append("where a.resource_id = ").append(resource.getId()).append("\n")
-                .append(" and a.start >= ").append(offset.start).append(" and a.end < ").append(offset.end).append("\n");
+                .append(" and a.start >= ").append(offset.getStart()).append(" and a.end < ").append(offset.getEnd()).append("\n");
         if (layers != null && !layers.isEmpty()) {
             sql.append(" and a.layer_id in ").append(joiningIds(layers)).append("\n");
         }
@@ -168,7 +170,7 @@ public class UtilManager extends Manager {
         return returns;
     }
 
-    public List<Map<String, Object>> kwic(List<Resource> resources, Layer layer, String query, Integer width) throws SQLException, ManagerException {
+    public List<Map<String, Object>> kwic(List<Resource> resources, String query, Integer width, Layer layer, List<Pair<Feature, String[]>> features) throws SQLException, ManagerException {
         width = width == null ? environment.getProperty("search.default-width", Integer.class, 10) : width;
         if (resources == null || resources.isEmpty()) {
             throw new ManagerException("null or empty resources");
@@ -176,14 +178,15 @@ public class UtilManager extends Manager {
         if (query == null || query.isEmpty()) {
             throw new ManagerException("null or empty query");
         }
+        query = query.replaceAll("token", "value");
         List<Map<String, Object>> list = new ArrayList<>();
         for (Resource resource : resources) {
-            list.addAll(kwic(resource, layer, query, width));
+            list.addAll(kwic(resource, query, width, layer, features));
         }
         return list;
     }
 
-    private List<Map<String, Object>> kwic(Resource resource, Layer layer, String query, int width) throws SQLException, ManagerException {
+    private List<Map<String, Object>> kwic(Resource resource, String query, int width, Layer layer, List<Pair<Feature, String[]>> features) throws SQLException, ManagerException {
         StringBuilder builder = new StringBuilder();
         builder.append("select distinct\n")
                 .append(" t.resource_id,\n")
@@ -212,8 +215,15 @@ public class UtilManager extends Manager {
                 .append("join ").append(quote(Row.class)).append(" rw on rw.id = t.row_id\n")
                 .append("join ").append(quote(Section.class)).append(" sc on sc.id = rw.section_id\n")
                 .append("join ").append(quote(Resource.class)).append(" rs on rs.id = a.resource_id\n")
-                .append("where a.resource_id = ").append(resource.getId()).append(" and (").append(query).append(")\n")
-                .append("order by t.start");
+                .append("where a.resource_id = ").append(resource.getId()).append(" and (").append(query).append(")\n");
+        if (features != null) {
+            for (Pair<Feature, String[]> feature : features) {
+                builder.append("and exists (select n.id from ").append(quote(AnnotationFeature.class)).append(" f join ").append(quote(Annotation.class)).append(" n on n.id = f.annotation_id \n")
+                        .append(" where n.resource_id = a.resource_id and f.feature_id = ").append(feature.getFirst().getId()).append(" and n.start = t.start and n.end = t.end\n")
+                        .append(" and f.value in ").append(formatSqlIn(feature.getSecond())).append(")\n");
+            }
+        }
+        builder.append("order by t.start");
         List<Map<String, Object>> list = databaseManager.query(builder.toString());
         String text = list.isEmpty() ? "" : resourceManager.getText(resource);
         return list.stream()
@@ -226,6 +236,12 @@ public class UtilManager extends Manager {
                     }
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String formatSqlIn(String[] values) {
+        return Stream.of(values)
+                .map(value -> "'" + value + "'")
+                .collect(Collectors.joining(",", "(", ")"));
     }
 
     public List<Map<String, Object>> aic(List<Resource> resources, Long featureId, String value, Integer width) throws SQLException, ManagerException {
@@ -381,7 +397,7 @@ public class UtilManager extends Manager {
                 .append("join ").append(quote(Feature.class)).append(" f on f.id = af.feature_id\n")
                 .append("where resource_id = ").append(resource.getId()).append("\n")
                 .append("and a.layer_id in ").append(joiningIds(layers)).append("\n")
-                .append("and a.start = ").append(offset.start).append(" and a.end = ").append(offset.end).append("");
+                .append("and a.start = ").append(offset.getStart()).append(" and a.end = ").append(offset.getEnd()).append("");
         List<Map<String, Object>> list = databaseManager.query(builder.toString());
         List<Map<String, Object>> ret = new ArrayList<>();
         Map<String, Object> current = null;
@@ -405,4 +421,38 @@ public class UtilManager extends Manager {
                 .map(e -> e.getId().toString())
                 .collect(Collectors.joining(",", "(", ")"));
     }
+
+    public List<String> featureValues(List<Resource> resources, String query, Feature feature) throws ManagerException, SQLException {
+        if (resources == null || resources.isEmpty()) {
+            throw new ManagerException("null or empty resources");
+        }
+        if (query == null || query.isEmpty()) {
+            throw new ManagerException("null or empty query");
+        }
+        query = query
+                .replaceAll("value ", "a.value")
+                .replaceAll("token", "a.value");
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Resource resource : resources) {
+            list.addAll(featureValues(resource, query, feature));
+        }
+        return list.stream()
+                .map(e -> (String) e.get("value"))
+                .distinct()
+                .toList();
+    }
+
+    public List<Map<String, Object>> featureValues(Resource resource, String query, Feature feature) throws ManagerException, SQLException {
+        StringBuilder builder = new StringBuilder();
+        builder.append("select distinct f.value \n")
+                .append("from ").append(quote(Analysis.class)).append(" a\n")
+                .append("join ").append(quote(Token.class)).append(" t on t.id = a.token_id\n")
+                .append("join ").append(quote(Annotation.class)).append(" n on n.resource_id = t.resource_id and n.start = t.start and n.end = t.end\n")
+                .append("join ").append(quote(AnnotationFeature.class)).append(" f on f.annotation_id = n.id\n")
+                .append("where a.resource_id = ").append(resource.getId())
+                .append(" and (").append(query).append(")")
+                .append(" and f.feature_id = ").append(feature.getId());
+        return databaseManager.query(builder.toString());
+    }
+
 }

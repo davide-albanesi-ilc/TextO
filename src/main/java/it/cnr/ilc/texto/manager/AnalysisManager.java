@@ -7,6 +7,8 @@ import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Row;
+import it.cnr.ilc.texto.domain.Tagset;
+import it.cnr.ilc.texto.domain.TagsetItem;
 import it.cnr.ilc.texto.domain.Token;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
@@ -180,6 +182,11 @@ public class AnalysisManager extends EntityManager<Analysis> {
         }
         layerManager.importLayers(lines);
         loadLayers();
+    }
+
+    public List<Map<String, Object>> getUpos() throws SQLException {
+        String sql = "select i.name, i.description from " + quote(Tagset.class) + " t join " + quote(TagsetItem.class) + " i on t.id = i.tagset_id where t.name = 'UPOS'";
+        return databaseManager.query(sql);
     }
 
     public Set<String> getAnalyzers() {
