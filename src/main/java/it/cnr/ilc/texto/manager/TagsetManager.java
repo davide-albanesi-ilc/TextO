@@ -4,6 +4,7 @@ import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.Tagset;
 import it.cnr.ilc.texto.domain.TagsetItem;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import it.cnr.ilc.texto.manager.annotation.Trigger;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class TagsetManager extends EntityManager<Tagset> {
     @Lazy
     @Autowired
     private TagsetItemManager tagsetItemManager;
+    @Lazy
+    @Autowired
+    private AnalysisManager analysisManager;
 
     @Override
     protected Class<Tagset> entityClass() {
@@ -29,6 +33,14 @@ public class TagsetManager extends EntityManager<Tagset> {
     @Override
     public String getLog(Tagset tagset) {
         return tagset.getName() != null ? tagset.getName() : "" + tagset.getId();
+    }
+
+    @Trigger(event = Trigger.Event.PRE_UPDATE)
+    @Trigger(event = Trigger.Event.PRE_REMOVE)
+    public void checkAnalysis(Tagset previous, Tagset tagset) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (analysisManager.isAnalysisTagset(tagset)) {
+            throw new ManagerException("analysis is locked");
+        }
     }
 
     public List<TagsetItem> getItems(Tagset tagset) throws SQLException, ReflectiveOperationException, ManagerException {

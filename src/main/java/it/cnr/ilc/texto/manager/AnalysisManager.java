@@ -159,6 +159,29 @@ public class AnalysisManager extends EntityManager<Analysis> {
         return featsFeatures;
     }
 
+    boolean isAnalysisLayer(Layer layer) {
+        return layer.equals(sentenceLayer)
+                || layer.equals(tokenLayer)
+                || layer.equals(formLayer)
+                || layer.equals(lemmaLayer)
+                || layer.equals(posLayer)
+                || layer.equals(featsLayer);
+    }
+
+    boolean isAnalysisFeature(Feature feature) {
+        return sentenceFetures.containsValue(feature)
+                || tokenFeatures.containsValue(feature)
+                || formFeatures.containsValue(feature)
+                || lemmaFeatures.containsValue(feature)
+                || posFeatures.containsValue(feature)
+                || featsFeatures.containsValue(feature);
+    }
+
+    boolean isAnalysisTagset(Tagset tagset) {
+        return posFeatures.values().stream().anyMatch(f -> tagset.equals(f.getTagset()))
+                || featsFeatures.values().stream().anyMatch(f -> tagset.equals(f.getTagset()));
+    }
+
     @Override
     protected Class<Analysis> entityClass() {
         return Analysis.class;
@@ -224,6 +247,38 @@ public class AnalysisManager extends EntityManager<Analysis> {
         databaseManager.update("delete from " + quote(Token.class) + " where resource_id = " + resource.getId());
         databaseManager.update("delete from " + quote(AnnotationFeature.class) + " where annotation_id in (select id from " + quote(Annotation.class) + " where layer_id in (" + layerIds + ") and resource_id = " + resource.getId() + ")");
         databaseManager.update("delete from " + quote(Annotation.class) + " where layer_id in (" + layerIds + ") and resource_id = " + resource.getId());
+    }
+
+    private List<Analysis> load(AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException {
+        String sql = "select n.*\n"
+                + "from " + quote(AnnotationFeature.class) + " af \n"
+                + "join " + quote(Annotation.class) + " a on a.id = af.annotation_id \n"
+                + "join " + quote(Token.class) + " t on t.start = a.start \n"
+                + "join " + quote(Analysis.class) + " n on n.token_id = t.id\n"
+                + "where af.id = " + annotationFeature.getId();
+        return load(sql);
+    }
+
+    public void updateLemma(AnnotationFeature previous, AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
+        List<Analysis> list = load(annotationFeature);
+        for (Analysis analysis : list) {
+            if (analysis.getLemma().equals(previous.getValue())) {
+                analysis.setLemma(annotationFeature.getValue());
+                domainManager.freeCache(analysis);
+                update(analysis);
+            }
+        }
+    }
+
+    public void updateUPOS(AnnotationFeature previous, AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
+        List<Analysis> list = load(annotationFeature);
+        for (Analysis analysis : list) {
+            if (analysis.getPos().equals(previous.getValue())) {
+                analysis.setPos(annotationFeature.getValue());
+                domainManager.freeCache(analysis);
+                update(analysis);
+            }
+        }
     }
 
     public static abstract class Analyzer {

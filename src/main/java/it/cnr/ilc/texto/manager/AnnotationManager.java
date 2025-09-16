@@ -42,6 +42,9 @@ public class AnnotationManager extends EntityManager<Annotation> {
     @Lazy
     @Autowired
     private ResourceManager resourceManager;
+    @Lazy
+    @Autowired
+    private AnalysisManager analysisManager;
 
     @Override
     protected Class<Annotation> entityClass() {
@@ -59,7 +62,15 @@ public class AnnotationManager extends EntityManager<Annotation> {
         }
     }
 
+    @Trigger(event = Event.PRE_UPDATE)
     @Trigger(event = Event.PRE_REMOVE)
+    public void checkAnalysis(Annotation previous, Annotation annotation) throws ManagerException {
+        if (analysisManager.isAnalysisLayer(annotation.getLayer())) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Trigger(event = Event.PRE_REMOVE, order = 1)
     public void removeAnnotationFeatures(Annotation previous, Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
         annotationFeatureManager.remove(annotation);
     }
