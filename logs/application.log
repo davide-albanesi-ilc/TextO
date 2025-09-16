@@ -1,8 +1,31 @@
-2025-09-03 12:13:06 INFO (admin) [void] keyword in context query "lemma = 'amore'" on Resource
-2025-09-03 12:20:41 INFO (admin) [void] keyword in context query "lemma = 'amore'" on Resource
-2025-09-03 12:22:09 INFO (admin) [void] keyword in context query "lemma = 'amore'" on Resource
-2025-09-03 12:26:54 INFO (admin) [void] keyword in context query "lemma like 'top%'" on Resource
-2025-09-03 12:27:03 INFO (admin) [void] keyword in context query "lemma like 'top%'" on Resource
-2025-09-03 12:27:15 INFO (admin) [void] keyword in context query "lemma like 'to%'" on Resource
-2025-09-03 12:28:09 INFO (admin) [void] keyword in context query "lemma like 'cas%'" on Resource
-2025-09-03 12:30:23 INFO (admin) [void] keyword in context query "lemma like 'lo%'" on Resource
+2025-09-15 08:53:17 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get Layer Sentence
+2025-09-15 08:53:26 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove Layer Sentence analysis is locked
+2025-09-15 08:54:22 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update Layer Sentence analysis is locked
+2025-09-15 09:01:04 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update Feature 6 not found
+2025-09-15 09:01:10 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update Feature Token Id analysis is locked
+2025-09-15 09:01:25 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove Feature Token Id analysis is locked
+2025-09-15 09:02:18 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove Annotation Sentence /Administrator/Decameron [0-163] analysis is locked
+2025-09-15 09:02:24 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove Annotation 31554831 not found
+2025-09-15 09:02:29 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove Annotation Sentence /Administrator/Decameron [0-163] analysis is locked
+2025-09-15 09:03:38 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update Annotation Sentence /Administrator/Decameron [0-163] analysis is locked
+2025-09-15 09:11:19 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get AnnotationFeature Sentence /Administrator/Decameron [0-163] Sentence Id 0
+2025-09-15 09:11:29 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove AnnotationFeature Sentence /Administrator/Decameron [0-163] Sentence Id 0 analysis is locked
+2025-09-15 09:11:47 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Sentence /Administrator/Decameron [0-163] Sentence Id 0 analysis is locked
+2025-09-15 09:21:38 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma cominciare no changes
+2025-09-15 09:22:19 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma cominciare no changes
+2025-09-15 09:25:09 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma cominciare no changes
+2025-09-15 09:28:50 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma cominciare no changes
+2025-09-15 09:40:18 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma cominciare
+2025-09-15 09:40:35 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma comiciolare
+2025-09-15 09:41:18 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma cominciare
+2025-09-15 09:41:31 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature Lemma /Administrator/Decameron [0-8] Lemma Lemma poppolopooi
+2025-09-15 09:42:49 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature POS /Administrator/Decameron [0-8] POS UPOS VERB
+2025-09-15 09:43:17 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update AnnotationFeature POS /Administrator/Decameron [0-8] POS UPOS NOUN
+2025-09-15 12:54:46 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get Tagset list
+2025-09-15 12:56:42 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get Tagset Gender
+2025-09-15 12:57:02 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove Tagset Gender analysis is locked
+2025-09-15 12:57:32 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update Tagset Gender analysis is locked
+2025-09-15 12:58:21 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get items of Tagset Gender
+2025-09-15 12:58:46 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] get TagsetItem Gender Fem
+2025-09-15 12:59:00 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] remove TagsetItem Gender Fem analysis is locked
+2025-09-15 12:59:15 INFO (admin) [eyJ1c2VybmFtZSI6ImFkbWluIiwibmFt] update TagsetItem Gender Fem analysis is locked

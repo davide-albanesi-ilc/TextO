@@ -307,6 +307,10 @@ public class DomainManager extends Manager {
         cache.clear();
     }
 
+    public void freeCache(Entity entity) {
+        cache.remove(entity);
+    }
+
     private <E extends Entity> void sqlInsert(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
         Descriptor<E> descriptor = descriptors.get((Class<E>) entity.getClass());
         StringBuilder sql = new StringBuilder();

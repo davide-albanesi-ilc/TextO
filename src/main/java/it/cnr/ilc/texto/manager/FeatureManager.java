@@ -1,10 +1,12 @@
 package it.cnr.ilc.texto.manager;
 
+import it.cnr.ilc.texto.domain.AnnotationFeature;
 import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.FeatureType;
 import it.cnr.ilc.texto.domain.Layer;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.annotation.Check;
+import it.cnr.ilc.texto.manager.annotation.Trigger;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
 import java.util.List;
@@ -25,6 +27,9 @@ public class FeatureManager extends EntityManager<Feature> {
     @Lazy
     @Autowired
     private LayerManager layerManager;
+    @Lazy
+    @Autowired
+    private AnalysisManager analysisManager;
 
     @Override
     protected Class<Feature> entityClass() {
@@ -41,6 +46,14 @@ public class FeatureManager extends EntityManager<Feature> {
         }
     }
 
+    @Trigger(event = Trigger.Event.PRE_UPDATE)
+    @Trigger(event = Trigger.Event.PRE_REMOVE)
+    public void checkAnalysis(Feature previous, Feature feature) throws ManagerException {
+        if (analysisManager.isAnalysisFeature(feature)) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+    
     @Check
     protected void checkTagset(Feature previous, Feature feature) throws ManagerException {
         if (FeatureType.TAGSET.equals(feature.getType()) && feature.getTagset() == null) {

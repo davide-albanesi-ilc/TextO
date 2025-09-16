@@ -3,6 +3,7 @@ package it.cnr.ilc.texto.manager;
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import it.cnr.ilc.texto.manager.annotation.Trigger;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
 import java.util.List;
@@ -23,10 +24,33 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
     @Lazy
     @Autowired
     private FeatureManager featureManager;
+    @Lazy
+    @Autowired
+    private AnalysisManager analysisManager;
 
     @Override
     protected Class<AnnotationFeature> entityClass() {
         return AnnotationFeature.class;
+    }
+
+    @Trigger(event = Trigger.Event.PRE_REMOVE)
+    public void checkAnalysisRemove(AnnotationFeature previous, AnnotationFeature annotationFeature) throws ManagerException {
+        if (analysisManager.isAnalysisFeature(annotationFeature.getFeature())) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Trigger(event = Trigger.Event.PRE_UPDATE)
+    public void checkAnalysisUpdate(AnnotationFeature previous, AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (analysisManager.isAnalysisFeature(annotationFeature.getFeature())) {
+            if (analysisManager.getLemmaFeatures().get("Lemma").equals(annotationFeature.getFeature())) {
+                analysisManager.updateLemma(previous, annotationFeature);
+            } else if (analysisManager.getPosFeatures().get("UPOS").equals(annotationFeature.getFeature())) {
+                analysisManager.updateUPOS(previous, annotationFeature);
+            } else {
+                throw new ManagerException("analysis is locked");
+            }
+        }
     }
 
     @Override

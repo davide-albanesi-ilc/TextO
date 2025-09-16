@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
+        <version>3.5.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>it.cnr.ilc.texto</groupId>
     <artifactId>texto</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <packaging>jar</packaging>
     <name>TextO</name>
     <properties>
