@@ -79,17 +79,18 @@ public class AnalysisManager extends EntityManager<Analysis> {
                 lemmaLayer = domainManager.loadUnique(Layer.class, "select * from " + quote(Layer.class) + " where name = 'Lemma'");
                 posLayer = domainManager.loadUnique(Layer.class, "select * from " + quote(Layer.class) + " where name = 'POS'");
                 featsLayer = domainManager.loadUnique(Layer.class, "select * from " + quote(Layer.class) + " where name = 'Feats'");
-                sentenceFetures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + sentenceLayer.getId())
+                sentenceFetures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + sentenceLayer.getId() + " and name in ('Id')")
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                tokenFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + tokenLayer.getId())
+                tokenFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + tokenLayer.getId() + " and name in ('Id','Token')")
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                formFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + formLayer.getId())
+                formFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + formLayer.getId() + " and name in ('Id','Form')")
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                lemmaFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + lemmaLayer.getId())
+                lemmaFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + lemmaLayer.getId() + " and name in ('Lemma')")
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                posFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + posLayer.getId())
+                posFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + posLayer.getId() + " and name in ('UPOS')")
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
-                featsFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + featsLayer.getId())
+                String featsNames = "'Aspect','Case','Clitic','Definite','Degree','Foreign','Gender','Mood','NumType','Number','Person','Polarity','Poss','PronType','Reflex','Tense','Typo','VerbForm','Voice','ExtPos'";
+                featsFeatures = domainManager.load(Feature.class, "select * from " + quote(Feature.class) + " where layer_id = " + featsLayer.getId() + " and name in (" + featsNames + ")")
                         .stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
             }
         } finally {

@@ -1,13 +1,18 @@
-2025-09-16 15:27:37 : select a.topic, a.action, r.id role, a.level from _access a join `Role` r on a.role = r.name
-2025-09-16 15:27:37 : select * from `Layer` where name = 'Token'
-2025-09-16 15:27:37 : select * from `Layer` where name = 'Sentence'
-2025-09-16 15:27:37 : select * from `Layer` where name = 'Form'
-2025-09-16 15:27:37 : select * from `Layer` where name = 'Lemma'
-2025-09-16 15:27:37 : select * from `Layer` where name = 'POS'
-2025-09-16 15:27:37 : select * from `Layer` where name = 'Feats'
-2025-09-16 15:27:37 : select * from `Feature` where layer_id = 6
-2025-09-16 15:27:37 : select * from `Feature` where layer_id = 8
-2025-09-16 15:27:37 : select * from `Feature` where layer_id = 11
-2025-09-16 15:27:37 : select * from `Feature` where layer_id = 14
-2025-09-16 15:27:37 : select * from `Feature` where layer_id = 16
-2025-09-16 15:27:37 : select * from `Feature` where layer_id = 36
+2025-10-27 10:32:44 : select a.topic, a.action, r.id role, a.level from _access a join `Role` r on a.role = r.name
+2025-10-27 10:32:44 : select * from `Layer` where name = 'Token'
+2025-10-27 10:32:44 : select * from `Layer` where name = 'Sentence'
+2025-10-27 10:32:44 : select * from `Layer` where name = 'Form'
+2025-10-27 10:32:44 : select * from `Layer` where name = 'Lemma'
+2025-10-27 10:32:44 : select * from `Layer` where name = 'POS'
+2025-10-27 10:32:44 : select * from `Layer` where name = 'Feats'
+2025-10-27 10:32:44 : select * from `Feature` where layer_id = 6 and name in ('Id')
+2025-10-27 10:32:44 : select * from `Feature` where layer_id = 8 and name in ('Id','Token')
+2025-10-27 10:32:44 : select * from `Feature` where layer_id = 11 and name in ('Id','Form')
+2025-10-27 10:32:44 : select * from `Feature` where layer_id = 14 and name in ('Lemma')
+2025-10-27 10:32:44 : select * from `Feature` where layer_id = 16 and name in ('UPOS')
+2025-10-27 10:32:44 : select * from `Feature` where layer_id = 36 and name in ('Aspect','Case','Clitic','Definite','Degree','Foreign','Gender','Mood','NumType','Number','Person','Polarity','Poss','PronType','Reflex','Tense','Typo','VerbForm','Voice','ExtPos')
+2025-10-27 10:32:58 : select * from `User` where username = 'admin'
+2025-10-27 10:32:58 : select * from `Resource`
+2025-10-27 10:32:58 : select * from `Feature` where id = 20077429
+2025-10-27 10:32:58 : select * from `Layer` where id = 20077428
+2025-10-27 10:32:58 : select distinct f.value from (select * from `Analysis` where value = 'casa') a join `Token` t on t.id = a.token_id join `Annotation` n on n.resource_id = t.resource_id and n.start = t.start and n.end = t.end join `AnnotationFeature` f on f.annotation_id = n.id where a.resource_id = 123 and f.feature_id = 20077429

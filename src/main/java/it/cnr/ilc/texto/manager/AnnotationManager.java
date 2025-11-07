@@ -62,6 +62,7 @@ public class AnnotationManager extends EntityManager<Annotation> {
         }
     }
 
+    @Trigger(event = Event.PRE_CREATE)
     @Trigger(event = Event.PRE_UPDATE)
     @Trigger(event = Event.PRE_REMOVE)
     public void checkAnalysis(Annotation previous, Annotation annotation) throws ManagerException {
