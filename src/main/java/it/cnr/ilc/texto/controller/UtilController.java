@@ -147,12 +147,22 @@ public class UtilController extends Controller {
                 features.add(new Pair<>(feature, featureFilter.values));
             }
         }
+        List<Pair<Feature, String[]>> features2 = new ArrayList<>();
+        if (request.features2 != null) {
+            for (KwicFeatureFiler featureFilter : request.features2) {
+                if ((feature = featureManager.load(featureFilter.feature)) == null) {
+                    throw new ManagerException("feature not found");
+                }
+                accessManager.checkAccess(feature.getLayer(), Action.READ);
+                features2.add(new Pair<>(feature, featureFilter.values));
+            }
+        }
         KwicRequest requestCache = (KwicRequest) accessManager.getSession().getCache().get("kwicRequest");
         List<Map<String, Object>> data = (List<Map<String, Object>>) accessManager.getSession().getCache().get("kwicData");
         if (requestCache != null && data != null && !request.hasToRelaod(requestCache)) {
             return data;
         } else {
-            data = utilManager.kwic(resources, request.query, request.width, layer, features);
+            data = utilManager.kwic(resources, request.query, request.width, layer, features, request.query2, features2);
             accessManager.getSession().getCache().put("kwicRequest", request);
             accessManager.getSession().getCache().put("kwicData", data);
             return data;
@@ -163,7 +173,7 @@ public class UtilController extends Controller {
 
     }
 
-    public static record KwicRequest(List<Long> resources, String query, Integer width, Boolean reload, Long layer, List<KwicFeatureFiler> features) {
+    public static record KwicRequest(List<Long> resources, String query, Integer width, Boolean reload, Long layer, List<KwicFeatureFiler> features, String query2, List<KwicFeatureFiler> features2) {
 
         private boolean hasToRelaod(KwicRequest cache) {
             return cache == null
@@ -176,7 +186,10 @@ public class UtilController extends Controller {
                     || (this.width != null && !this.width.equals(cache.width))
                     || (this.query == null && cache.query != null)
                     || (this.query != null && !this.query.equals(cache.query))
-                    || (this.features != null && !this.features.equals(cache.features));
+                    || (this.features != null && !this.features.equals(cache.features))
+                    || (this.query2 == null && cache.query2 != null)
+                    || (this.query2 != null && !this.query2.equals(cache.query))
+                    || (this.features2 != null && !this.features2.equals(cache.features2));
         }
     }
 

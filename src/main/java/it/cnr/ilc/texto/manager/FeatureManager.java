@@ -1,6 +1,5 @@
 package it.cnr.ilc.texto.manager;
 
-import it.cnr.ilc.texto.domain.AnnotationFeature;
 import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.FeatureType;
 import it.cnr.ilc.texto.domain.Layer;
@@ -53,7 +52,7 @@ public class FeatureManager extends EntityManager<Feature> {
             throw new ManagerException("analysis is locked");
         }
     }
-    
+
     @Check
     protected void checkTagset(Feature previous, Feature feature) throws ManagerException {
         if (FeatureType.TAGSET.equals(feature.getType()) && feature.getTagset() == null) {

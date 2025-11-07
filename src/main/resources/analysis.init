@@ -119,3 +119,4 @@ Tagset	Voice	Voice
 TagsetItem	Act	Active
 TagsetItem	Pass	Passive
 Feature	Voice	Voice	TAGSET	Voice
+Feature	ExtPos	Extended Part of speech	TAGSET	UPOS

@@ -170,7 +170,7 @@ public class UtilManager extends Manager {
         return returns;
     }
 
-    public List<Map<String, Object>> kwic(List<Resource> resources, String query, Integer width, Layer layer, List<Pair<Feature, String[]>> features) throws SQLException, ManagerException {
+    public List<Map<String, Object>> kwic(List<Resource> resources, String query, Integer width, Layer layer, List<Pair<Feature, String[]>> features, String query2, List<Pair<Feature, String[]>> features2) throws SQLException, ManagerException {
         width = width == null ? environment.getProperty("search.default-width", Integer.class, 10) : width;
         if (resources == null || resources.isEmpty()) {
             throw new ManagerException("null or empty resources");
@@ -179,14 +179,17 @@ public class UtilManager extends Manager {
             throw new ManagerException("null or empty query");
         }
         query = query.replaceAll("token", "value");
+        if (query2 != null) {
+            query2 = query2.replaceAll("token", "value");
+        }
         List<Map<String, Object>> list = new ArrayList<>();
         for (Resource resource : resources) {
-            list.addAll(kwic(resource, query, width, layer, features));
+            list.addAll(kwic(resource, query, width, layer, features, query2, features2));
         }
         return list;
     }
 
-    private List<Map<String, Object>> kwic(Resource resource, String query, int width, Layer layer, List<Pair<Feature, String[]>> features) throws SQLException, ManagerException {
+    private List<Map<String, Object>> kwic(Resource resource, String query, int width, Layer layer, List<Pair<Feature, String[]>> features, String query2, List<Pair<Feature, String[]>> features2) throws SQLException, ManagerException {
         StringBuilder builder = new StringBuilder();
         builder.append("select distinct\n")
                 .append(" t.resource_id,\n")
@@ -208,19 +211,37 @@ public class UtilManager extends Manager {
         } else {
             builder.append(" null \"annotated\"\n");
         }
-        builder.append("from ").append(quote(Analysis.class)).append(" a\n")
+        if (query2 != null) {
+            builder.insert(builder.length() - 1, ",");
+            builder.append(" k.number \"cooccur_number\",\n")
+                    .append(" k.start \"cooccur_start\",\n")
+                    .append(" k.end \"cooccur_end\",\n")
+                    .append(" n.value \"cooccur_token\"\n");
+        }
+        builder.append("from (select * from ").append(quote(Analysis.class)).append(" where ").append(query).append(") a\n")
                 .append("join ").append(quote(Token.class)).append(" t on t.id = a.token_id\n")
                 .append("join ").append(quote(Token.class)).append(" l on l.resource_id = t.resource_id and l.number = greatest(t.number-").append(width).append(", 0)\n")
                 .append("join ").append(quote(Token.class)).append(" r on r.resource_id = t.resource_id and r.number = least(t.number+").append(width).append(", (select max(number) from ").append(quote(Token.class)).append(" where resource_id = ").append(resource.getId()).append("))\n")
                 .append("join ").append(quote(Row.class)).append(" rw on rw.id = t.row_id\n")
                 .append("join ").append(quote(Section.class)).append(" sc on sc.id = rw.section_id\n")
-                .append("join ").append(quote(Resource.class)).append(" rs on rs.id = a.resource_id\n")
-                .append("where a.resource_id = ").append(resource.getId()).append(" and (").append(query).append(")\n");
+                .append("join ").append(quote(Resource.class)).append(" rs on rs.id = a.resource_id\n");
+        if (query2 != null) {
+            builder.append("join ").append(quote(Token.class)).append(" k on k.resource_id = t.resource_id and k.number >= l.number and k.number <= r.number\n")
+                    .append("join (select * from ").append(quote(Analysis.class)).append(" where ").append(query2).append(") n on n.token_id = k.id\n");
+        }
+        builder.append("where a.resource_id = ").append(resource.getId()).append("\n");
         if (features != null) {
             for (Pair<Feature, String[]> feature : features) {
                 builder.append("and exists (select n.id from ").append(quote(AnnotationFeature.class)).append(" f join ").append(quote(Annotation.class)).append(" n on n.id = f.annotation_id \n")
                         .append(" where n.resource_id = a.resource_id and f.feature_id = ").append(feature.getFirst().getId()).append(" and n.start = t.start and n.end = t.end\n")
                         .append(" and f.value in ").append(formatSqlIn(feature.getSecond())).append(")\n");
+            }
+        }
+        if (features2 != null) {
+            for (Pair<Feature, String[]> feature2 : features2) {
+                builder.append("and exists (select o.id from ").append(quote(AnnotationFeature.class)).append(" e join ").append(quote(Annotation.class)).append(" o on o.id = e.annotation_id \n")
+                        .append(" where o.resource_id = a.resource_id and e.feature_id = ").append(feature2.getFirst().getId()).append(" and n.start = k.start and n.end = k.end\n")
+                        .append(" and e.value in ").append(formatSqlIn(feature2.getSecond())).append(")\n");
             }
         }
         builder.append("order by t.start");
@@ -389,6 +410,7 @@ public class UtilManager extends Manager {
                 .append(" af.feature_id,\n")
                 .append(" f.name \"feature_name\",\n")
                 .append(" f.type \"feature_type\",\n")
+                .append(" af.id \"annotation_feature_id\",\n")
                 .append(" af.value \n")
                 .append("from ").append(quote(Annotation.class)).append(" a\n")
                 .append("join ").append(quote(AnnotationFeature.class)).append(" af on af.annotation_id = a.id\n")
@@ -411,6 +433,7 @@ public class UtilManager extends Manager {
                     "feature_id", map.remove("feature_id"),
                     "feature_name", map.remove("feature_name"),
                     "feature_type", map.remove("feature_type"),
+                    "annotation_feature_id", map.remove("annotation_feature_id"),
                     "value", map.remove("value")));
         }
         return ret;
@@ -429,9 +452,7 @@ public class UtilManager extends Manager {
         if (query == null || query.isEmpty()) {
             throw new ManagerException("null or empty query");
         }
-        query = query
-                .replaceAll("value ", "a.value")
-                .replaceAll("token", "a.value");
+        query = query.replaceAll("token", "value");
         List<Map<String, Object>> list = new ArrayList<>();
         for (Resource resource : resources) {
             list.addAll(featureValues(resource, query, feature));
@@ -445,14 +466,48 @@ public class UtilManager extends Manager {
     public List<Map<String, Object>> featureValues(Resource resource, String query, Feature feature) throws ManagerException, SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append("select distinct f.value \n")
-                .append("from ").append(quote(Analysis.class)).append(" a\n")
+                .append("from (select * from ").append(quote(Analysis.class)).append(" where ").append(query).append(") a\n")
                 .append("join ").append(quote(Token.class)).append(" t on t.id = a.token_id\n")
                 .append("join ").append(quote(Annotation.class)).append(" n on n.resource_id = t.resource_id and n.start = t.start and n.end = t.end\n")
                 .append("join ").append(quote(AnnotationFeature.class)).append(" f on f.annotation_id = n.id\n")
                 .append("where a.resource_id = ").append(resource.getId())
-                .append(" and (").append(query).append(")")
                 .append(" and f.feature_id = ").append(feature.getId());
         return databaseManager.query(builder.toString());
     }
 
+    /*
+select distinct 
+ t.resource_id, 
+ rs.name "resource_name", 
+ sc.id section_id, sc.index "section_index", 
+ t.row_id, 
+ rw.number "row_number", 
+ t.number, 
+ t.start, 
+ t.end, 
+ l.start "left_start", 
+ r.end "right_end", 
+ a.value "token", 
+ null "annotated",
+ k.number "cooccur_number",
+ k.start "cooccur_start",
+ k.end "cooccur_end",
+ n.value "cooccur_token"
+from (select * from `Analysis` where lemma = 'andare') a 
+join `Token` t on t.id = a.token_id 
+join `Token` l on l.resource_id = t.resource_id and l.number = greatest(t.number-10, 0) 
+join `Token` r on r.resource_id = t.resource_id and r.number = least(t.number+10, (select max(number) from `Token` where resource_id = 123)) 
+join `Token` k on k.resource_id = t.resource_id and k.number >= l.number and k.number <= r.number
+join (select * from `Analysis` where lemma='cavallo') n on n.token_id = k.id 
+join `Row` rw on rw.id = t.row_id 
+join `Section` sc on sc.id = rw.section_id 
+join `Resource` rs on rs.id = a.resource_id 
+where a.resource_id = 123
+order by t.start
+    
+-- tribulazione http://lexica/mylexicon#LexO_2024-05-0809_51_20_468
+
+-- spavento http://lexica/mylexicon#LexO_2024-09-2513_29_08_248
+
+     */
 }

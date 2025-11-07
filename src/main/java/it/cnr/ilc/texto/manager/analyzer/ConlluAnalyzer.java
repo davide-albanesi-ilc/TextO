@@ -30,14 +30,15 @@ public abstract class ConlluAnalyzer extends Analyzer {
         monitorManager.setMax(lines.size());
         RowIndexes rowIndexes = new RowIndexes(resource);
         List<Entity> entities = new ArrayList<>();
-        String[] split, subsplit, offset, feats;
+        String[] split, subsplit, feats;
         String value = null, form = null, lemma = null, pos = null;
+        int sentenceStart = -1, sentenceId = 0, number = -1, multi = 0;
+        int[] offsets = new int[]{0, 0};
         Annotation annotation;
         AnnotationFeature annotationFeature;
         Feature feature;
         Token token = null;
         Analysis analysis;
-        int start = 0, end = 0, sentenceStart = -1, sentenceId = 0, number = -1;
         for (String line : lines) {
             // SENTENCE
             if (line.startsWith("# text") && sentenceStart != -1) {
@@ -45,7 +46,7 @@ public abstract class ConlluAnalyzer extends Analyzer {
                 annotation.setResource(resource);
                 annotation.setLayer(analysisManager.getSentenceLayer());
                 annotation.setStart(sentenceStart);
-                annotation.setEnd(end);
+                annotation.setEnd(offsets[1]);
                 annotation.setUser(user);
                 entities.add(annotation);
                 annotationFeature = new AnnotationFeature();
@@ -57,15 +58,13 @@ public abstract class ConlluAnalyzer extends Analyzer {
             } else if (!line.isEmpty() && !line.startsWith("#")) {
                 split = line.split("\\t");
                 // TOKEN
-                if (!split[9].equals("_")) {
-                    offset = split[9].split("\\|");
-                    start = Integer.parseInt(offset[0].substring(11));
-                    end = Integer.parseInt(offset[1].substring(9));
+                if (multi == 0) {
+                    offsets = getOffsets(split[9]);
                     annotation = new Annotation();
                     annotation.setResource(resource);
                     annotation.setLayer(analysisManager.getTokenLayer());
-                    annotation.setStart(start);
-                    annotation.setEnd(end);
+                    annotation.setStart(offsets[0]);
+                    annotation.setEnd(offsets[1]);
                     annotation.setUser(user);
                     entities.add(annotation);
                     annotationFeature = new AnnotationFeature();
@@ -85,8 +84,8 @@ public abstract class ConlluAnalyzer extends Analyzer {
                     annotation = new Annotation();
                     annotation.setResource(resource);
                     annotation.setLayer(analysisManager.getFormLayer());
-                    annotation.setStart(start);
-                    annotation.setEnd(end);
+                    annotation.setStart(offsets[0]);
+                    annotation.setEnd(offsets[1]);
                     annotation.setUser(user);
                     entities.add(annotation);
                     annotationFeature = new AnnotationFeature();
@@ -106,8 +105,8 @@ public abstract class ConlluAnalyzer extends Analyzer {
                     annotation = new Annotation();
                     annotation.setResource(resource);
                     annotation.setLayer(analysisManager.getLemmaLayer());
-                    annotation.setStart(start);
-                    annotation.setEnd(end);
+                    annotation.setStart(offsets[0]);
+                    annotation.setEnd(offsets[1]);
                     annotation.setUser(user);
                     entities.add(annotation);
                     annotationFeature = new AnnotationFeature();
@@ -122,8 +121,8 @@ public abstract class ConlluAnalyzer extends Analyzer {
                     annotation = new Annotation();
                     annotation.setResource(resource);
                     annotation.setLayer(analysisManager.getPosLayer());
-                    annotation.setStart(start);
-                    annotation.setEnd(end);
+                    annotation.setStart(offsets[0]);
+                    annotation.setEnd(offsets[1]);
                     annotation.setUser(user);
                     entities.add(annotation);
                     annotationFeature = new AnnotationFeature();
@@ -138,8 +137,8 @@ public abstract class ConlluAnalyzer extends Analyzer {
                     annotation = new Annotation();
                     annotation.setResource(resource);
                     annotation.setLayer(analysisManager.getFeatsLayer());
-                    annotation.setStart(start);
-                    annotation.setEnd(end);
+                    annotation.setStart(offsets[0]);
+                    annotation.setEnd(offsets[1]);
                     annotation.setUser(user);
                     entities.add(annotation);
                     feats = split[5].split("\\|");
@@ -156,15 +155,17 @@ public abstract class ConlluAnalyzer extends Analyzer {
                         entities.add(annotationFeature);
                     }
                 }
-                if (!split[9].equals("_")) {
+                if (multi == 0) {
                     number++;
                     token = new Token();
                     token.setResource(resource);
-                    token.setRow(Entity.newGhost(Row.class, rowIndexes.getId(start)));
+                    token.setRow(Entity.newGhost(Row.class, rowIndexes.getId(offsets[0])));
                     token.setNumber(number);
-                    token.setStart(start);
-                    token.setEnd(end);
+                    token.setStart(offsets[0]);
+                    token.setEnd(offsets[1]);
                     entities.add(token);
+                } else {
+                    multi--;
                 }
                 if (!split[0].contains("-")) {
                     analysis = new Analysis();
@@ -175,9 +176,12 @@ public abstract class ConlluAnalyzer extends Analyzer {
                     analysis.setLemma(lemma);
                     analysis.setPos(pos);
                     entities.add(analysis);
+                } else {
+                    split = split[0].split("-");
+                    multi = Integer.parseInt(split[1]) - Integer.parseInt(split[0]) + 1;
                 }
                 if (sentenceStart == -1) {
-                    sentenceStart = start;
+                    sentenceStart = offsets[0];
                 }
             }
             monitorManager.next();
@@ -185,4 +189,19 @@ public abstract class ConlluAnalyzer extends Analyzer {
         domainManager.create(entities);
     }
 
+    private int[] getOffsets(String input) throws ManagerException {
+        int[] offsets = new int[]{-1, -1};
+        String[] splits = input.split("\\|");
+        for (String split : splits) {
+            if (split.startsWith("start_char")) {
+                offsets[0] = Integer.parseInt(split.substring(11));
+            } else if (split.startsWith("end_char")) {
+                offsets[1] = Integer.parseInt(split.substring(9));
+            }
+        }
+        if (offsets[0] == -1 || offsets[1] == -1) {
+            throw new ManagerException("start_char or end_char not found: " + input);
+        }
+        return offsets;
+    }
 }

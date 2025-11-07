@@ -33,8 +33,9 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
         return AnnotationFeature.class;
     }
 
+    @Trigger(event = Trigger.Event.PRE_CREATE)
     @Trigger(event = Trigger.Event.PRE_REMOVE)
-    public void checkAnalysisRemove(AnnotationFeature previous, AnnotationFeature annotationFeature) throws ManagerException {
+    public void checkAnalysis(AnnotationFeature previous, AnnotationFeature annotationFeature) throws ManagerException {
         if (analysisManager.isAnalysisFeature(annotationFeature.getFeature())) {
             throw new ManagerException("analysis is locked");
         }
