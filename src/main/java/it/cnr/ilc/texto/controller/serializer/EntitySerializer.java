@@ -1,12 +1,12 @@
 package it.cnr.ilc.texto.controller.serializer;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import it.cnr.ilc.texto.domain.Entity;
 import it.cnr.ilc.texto.domain.Status;
-import java.io.IOException;
 import java.lang.reflect.Method;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
  *
@@ -19,9 +19,9 @@ public class EntitySerializer extends StdSerializer<Entity> {
     }
 
     @Override
-    public void serialize(Entity entity, JsonGenerator generator, SerializerProvider serializer) throws IOException {
+    public void serialize(Entity entity, JsonGenerator generator, SerializationContext provider) throws JacksonException {
         generator.writeStartObject();
-        generator.writeNumberField("id", entity.getId());
+        generator.writeNumberProperty("id", entity.getId());
         if (entity.getStatus().equals(Status.VALID)) {
             String field;
             Object value;
@@ -29,7 +29,7 @@ public class EntitySerializer extends StdSerializer<Entity> {
                 try {
                     field = Character.toLowerCase(method.getName().charAt(3)) + method.getName().substring(4);
                     value = method.invoke(entity);
-                    generator.writeObjectField(field, value);
+                    generator.writePOJOProperty(field, value);
                 } catch (ReflectiveOperationException ex) {
                     throw new RuntimeException(ex);
                 }

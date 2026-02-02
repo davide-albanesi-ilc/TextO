@@ -160,6 +160,7 @@ public class UtilController extends Controller {
         KwicRequest requestCache = (KwicRequest) accessManager.getSession().getCache().get("kwicRequest");
         List<Map<String, Object>> data = (List<Map<String, Object>>) accessManager.getSession().getCache().get("kwicData");
         if (requestCache != null && data != null && !request.hasToRelaod(requestCache)) {
+            logManager.appendMessage("using cache");
             return data;
         } else {
             data = utilManager.kwic(resources, request.query, request.width, layer, features, request.query2, features2);
@@ -200,6 +201,7 @@ public class UtilController extends Controller {
         AicRequest requestCache = (AicRequest) accessManager.getSession().getCache().get("aicRequest");
         List<Map<String, Object>> data = (List<Map<String, Object>>) accessManager.getSession().getCache().get("aicData");
         if (requestCache != null && data != null && !request.hasToRelaod(requestCache)) {
+            logManager.appendMessage("using cache");
             return data;
         } else {
             data = utilManager.aic(resources, request.featureId, request.value, request.width);
@@ -231,7 +233,10 @@ public class UtilController extends Controller {
         List<Resource> resources = checkResources(request.resources);
         AisRequest requestCache = (AisRequest) accessManager.getSession().getCache().get("aisRequest");
         List<Map<String, Object>> data = (List<Map<String, Object>>) accessManager.getSession().getCache().get("aisData");
-        if (requestCache == null || request.hasToRelaod(requestCache)) {
+       if (requestCache != null && data != null && !request.hasToRelaod(requestCache)) {
+            logManager.appendMessage("using cache");
+            return data;
+        } else {
             data = utilManager.ais(resources, request.featureId, request.value, request.width);
             accessManager.getSession().getCache().put("aisRequest", request);
             accessManager.getSession().getCache().put("aisData", data);
@@ -257,7 +262,6 @@ public class UtilController extends Controller {
     }
 
     private List<Resource> checkResources(List<Long> ids) throws ReflectiveOperationException, SQLException, ForbiddenException, ManagerException {
-        logManager.appendMessage("on").appendMessage(Resource.class);
         List<Resource> resources = new ArrayList<>();
         if (ids == null || ids.isEmpty()) {
             for (Resource resource : resourceManager.load()) {
@@ -274,8 +278,7 @@ public class UtilController extends Controller {
             Resource resource;
             for (Long id : ids) {
                 if ((resource = resourceManager.load(id)) == null) {
-                    logManager.appendMessage("" + id);
-                    throw new ManagerException("not found");
+                    throw new ManagerException("resource not found");
                 } else {
                     resources.add(resource);
                 }

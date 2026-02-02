@@ -6,6 +6,7 @@ import it.cnr.ilc.texto.domain.FeatureType;
 import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Tagset;
 import it.cnr.ilc.texto.domain.TagsetItem;
+import it.cnr.ilc.texto.domain.Test;
 import it.cnr.ilc.texto.domain.annotation.Required;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -52,6 +53,10 @@ public class DatabaseCreator {
 
     public void addEntityClass(Class<? extends Entity> clazz) {
         entitiesClasses.add(clazz);
+    }
+
+    public void removeEntityClass(Class<? extends Entity> clazz) {
+        entitiesClasses.remove(clazz);
     }
 
     public String getScript() {
@@ -237,6 +242,7 @@ public class DatabaseCreator {
         DatabaseCreator creator = new DatabaseCreator();
         Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(Entity.class.getPackageName()));
         reflections.getSubTypesOf(Entity.class).stream().forEach(c -> creator.addEntityClass(c));
+        creator.removeEntityClass(Test.class);
         StringBuilder script = new StringBuilder();
         script.append(creator.getScript());
         script.append(creator.initAccess());
