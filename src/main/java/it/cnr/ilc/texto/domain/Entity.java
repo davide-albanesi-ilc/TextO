@@ -1,6 +1,5 @@
 package it.cnr.ilc.texto.domain;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import it.cnr.ilc.texto.controller.serializer.EntitySerializer;
 import it.cnr.ilc.texto.domain.annotation.Ignore;
 import java.lang.reflect.Method;
@@ -8,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  *

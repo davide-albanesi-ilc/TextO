@@ -2,11 +2,14 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
+import it.cnr.ilc.texto.domain.Feature;
+import it.cnr.ilc.texto.domain.Tagset;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.annotation.Trigger;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -75,6 +78,19 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
     public void remove(Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
         for (AnnotationFeature annotationFeature : load(annotation)) {
             remove(annotationFeature);
+        }
+    }
+
+    public void tagsetValueMultipleUpdate(Tagset tagset, String previous, String current) throws SQLException, ManagerException {
+        if (Objects.equals(previous, current)) {
+            throw new ManagerException("no changes");
+        } else {
+            StringBuilder sql = new StringBuilder();
+            sql.append("update ").append(quote(AnnotationFeature.class)).append("\n")
+                    .append("set value = '").append(current).append("'\n")
+                    .append("where feature_id in (select id from ").append(quote(Feature.class)).append(" where tagset_id = ").append(tagset.getId()).append(")\n")
+                    .append("and value = '").append(previous).append("'");
+            databaseManager.update(sql.toString());
         }
     }
 }
