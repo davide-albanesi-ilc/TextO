@@ -19,10 +19,21 @@ import java.util.Map;
  *
  * @author oakgen
  */
-public abstract class JWTExternAccessImplementation extends ExternalAccessImplementation {
+public abstract class JWTExternalAccessImplementation extends ExternalAccessImplementation {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private String publicKey;
+
+    @Override
+    protected void init() throws AuthorizationException {
+        try (InputStream input = JWTExternalAccessImplementation.class.getResourceAsStream("/public.pem")) {
+            publicKey = new String(input.readAllBytes())
+                    .replaceAll("-----.*-----", "")
+                    .replaceAll("\n", "");
+        } catch (IOException e) {
+            throw new AuthorizationException("public key not found");
+        }
+    }
 
     @Override
     protected String retrieveToken(String token) throws Exception {
@@ -35,21 +46,7 @@ public abstract class JWTExternAccessImplementation extends ExternalAccessImplem
         return chunks[1];
     }
 
-    private String loadPublicKey() throws AuthorizationException {
-        if (publicKey == null) {
-            try (InputStream input = JWTExternAccessImplementation.class.getResourceAsStream("/public.pem")) {
-                publicKey = new String(input.readAllBytes())
-                        .replaceAll("-----.*-----", "")
-                        .replaceAll("\n", "");
-            } catch (IOException e) {
-                throw new AuthorizationException("public key not found");
-            }
-        }
-        return publicKey;
-    }
-
     private Claims validate(String jwtToken) throws AuthorizationException {
-        loadPublicKey();
         String algorithm = environment.getProperty("jwt.algorithm", "RSA");
         try {
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey));

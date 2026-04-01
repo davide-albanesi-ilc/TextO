@@ -7,9 +7,11 @@ import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
+import it.cnr.ilc.texto.domain.Token;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.ResourceManager.checkOffset;
+import it.cnr.ilc.texto.manager.annotation.Check;
 import it.cnr.ilc.texto.manager.annotation.Trigger;
 import it.cnr.ilc.texto.manager.annotation.Trigger.Event;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
@@ -71,9 +73,39 @@ public class AnnotationManager extends EntityManager<Annotation> {
         }
     }
 
+    @Trigger(event = Event.PRE_CREATE)
+    public void createTokenAnnotation(Annotation previous, Annotation annotation) throws SQLException {
+        StringBuilder builder = new StringBuilder();
+        builder.append("insert into _tokenannotation select id, ").append(annotation.getId())
+                .append(" from ").append(quote(Token.class))
+                .append(" where start >= ").append(annotation.getStart()).append(" and end <= ").append(annotation.getStart());
+        databaseManager.update(builder.toString());
+    }
+
+    @Trigger(event = Event.PRE_REMOVE)
+    public void removeTokenAnnotation(Annotation previous, Annotation annotation) throws SQLException {
+        StringBuilder builder = new StringBuilder();
+        builder.append("delete from _tokenannotation where annotation_id = ").append(annotation.getId());
+        databaseManager.update(builder.toString());
+    }
+
+    @Trigger(event = Event.PRE_UPDATE)
+    public void updateTokenAnnotation(Annotation previous, Annotation annotation) throws SQLException {
+        removeTokenAnnotation(previous, annotation);
+        createTokenAnnotation(previous, annotation);
+    }
+
     @Trigger(event = Event.PRE_REMOVE, order = 1)
     public void removeAnnotationFeatures(Annotation previous, Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
         annotationFeatureManager.remove(annotation);
+    }
+
+    @Check
+    public void checkLayers(Annotation previous, Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
+        List<Feature> features = featureManager.load(annotation);
+        if (!features.stream().allMatch(f -> f.getLayer().equals(annotation.getLayer()))) {
+            throw new ManagerException("layer mismatch");
+        }
     }
 
     public List<Annotation> load(Resource resource, Offset offset) throws SQLException, ReflectiveOperationException, ManagerException {

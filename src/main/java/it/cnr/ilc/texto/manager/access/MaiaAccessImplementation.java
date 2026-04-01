@@ -5,6 +5,7 @@ import it.cnr.ilc.texto.domain.Role;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
+import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,12 +13,12 @@ import java.util.Map;
  *
  * @author oakgen
  */
-public class MaiaAccessImplementation extends JWTExternAccessImplementation {
+public class MaiaAccessImplementation extends JWTExternalAccessImplementation {
 
     private final Map<String, String> matches = new HashMap<>();
 
     @Override
-    protected void init() throws Exception {
+    protected void init() throws AuthorizationException {
         super.init();
         matches.put("ADMINISTRATOR", "Administrator");
         matches.put("SUPERVISOR", "Editor");

@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.manager.access;
 
+import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import java.util.Base64;
 import java.util.Random;
@@ -22,7 +23,7 @@ public class SessionIdInnternalAccessImplementation extends InternalAccessImplem
     }
 
     @Override
-    protected String generateToken() {
+    protected String generateToken(User user) {
         byte[] buffer = new byte[KEY_BUFFER_SIZE];
         random.nextBytes(buffer);
         String key = Base64.getUrlEncoder().encodeToString(buffer);

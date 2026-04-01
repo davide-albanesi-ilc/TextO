@@ -2,7 +2,6 @@ package it.cnr.ilc.texto.domain;
 
 import it.cnr.ilc.texto.domain.annotation.Indexed;
 import it.cnr.ilc.texto.domain.annotation.Required;
-import java.util.List;
 
 /**
  *

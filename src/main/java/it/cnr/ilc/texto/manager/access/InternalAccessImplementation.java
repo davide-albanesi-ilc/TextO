@@ -20,12 +20,6 @@ public abstract class InternalAccessImplementation extends AccessImplementation 
 
     private final Map<Thread, Session> threads = new ConcurrentHashMap<>();
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
-    private long timeout;
-
-    @Override
-    protected void init() throws Exception {
-        timeout = Long.parseLong(environment.getProperty("access.session-timeout", "1800")) * 1000;
-    }
 
     @Override
     protected void startRequest(HttpServletRequest request) throws Exception {
@@ -55,6 +49,7 @@ public abstract class InternalAccessImplementation extends AccessImplementation 
     protected void endRequest() throws Exception {
         Session session = threads.remove(Thread.currentThread());
         if (session != null) {
+            long timeout = Long.parseLong(environment.getProperty("access.session-timeout", "1800")) * 1000;
             Timer timer = session.getTimer();
             timer.cancel();
             timer.purge();
@@ -68,10 +63,11 @@ public abstract class InternalAccessImplementation extends AccessImplementation 
     }
 
     @Override
-    protected String startSession(User user) {
+    protected String startSession(User user) throws Exception {
+        long timeout = Long.parseLong(environment.getProperty("access.session-timeout", "1800")) * 1000;
         Session session = new Session();
         session.setUser(user);
-        session.setToken(generateToken());
+        session.setToken(generateToken(user));
         Timer timer = new Timer();
         timer.schedule(new CancelTask(session.getToken()), timeout);
         session.setTimer(timer);
@@ -82,7 +78,7 @@ public abstract class InternalAccessImplementation extends AccessImplementation 
         return session.getToken();
     }
 
-    protected abstract String generateToken();
+    protected abstract String generateToken(User user) throws Exception;
 
     @Override
     public Session getSession() {
