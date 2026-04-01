@@ -1,5 +1,7 @@
 package it.cnr.ilc.texto.manager;
 
+import it.cnr.ilc.texto.domain.Annotation;
+import it.cnr.ilc.texto.domain.AnnotationFeature;
 import it.cnr.ilc.texto.domain.Feature;
 import it.cnr.ilc.texto.domain.FeatureType;
 import it.cnr.ilc.texto.domain.Layer;
@@ -77,6 +79,14 @@ public class FeatureManager extends EntityManager<Feature> {
         for (Feature feature : load(layer)) {
             remove(feature);
         }
+    }
+
+    public List<Feature> load(Annotation annotation) throws SQLException, ReflectiveOperationException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("select f.* from ").append(quote(AnnotationFeature.class)).append(" af \n")
+                .append("join ").append(quote(Feature.class)).append(" f on f.id = af.feature_id\n")
+                .append("where af.annotation_id = ").append(annotation.getId());
+        return load(sql.toString());
     }
 
 }

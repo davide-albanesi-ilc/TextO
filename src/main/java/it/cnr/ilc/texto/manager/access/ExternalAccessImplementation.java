@@ -20,12 +20,6 @@ public abstract class ExternalAccessImplementation extends AccessImplementation 
 
     private final Map<Thread, Session> threads = new ConcurrentHashMap<>();
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
-    private long timeout;
-
-    @Override
-    protected void init() throws Exception {
-        timeout = Long.parseLong(environment.getProperty("access.session-timeout", "1800")) * 1000;
-    }
 
     @Override
     protected void startRequest(HttpServletRequest request) throws Exception {
@@ -40,6 +34,7 @@ public abstract class ExternalAccessImplementation extends AccessImplementation 
             timer.cancel();
             timer.purge();
         } else {
+            long timeout = Long.parseLong(environment.getProperty("access.session-timeout", "1800")) * 1000;
             session = new Session();
             session.setUser(retrieveUser(token));
             session.setToken(token);
@@ -67,6 +62,7 @@ public abstract class ExternalAccessImplementation extends AccessImplementation 
     protected void endRequest() throws Exception {
         Session session = threads.remove(Thread.currentThread());
         if (session != null) {
+            long timeout = Long.parseLong(environment.getProperty("access.session-timeout", "1800")) * 1000;
             Timer timer = session.getTimer();
             timer.cancel();
             timer.purge();

@@ -3,8 +3,10 @@ package it.cnr.ilc.texto.manager;
 import it.cnr.ilc.texto.domain.Annotation;
 import it.cnr.ilc.texto.domain.AnnotationFeature;
 import it.cnr.ilc.texto.domain.Feature;
+import it.cnr.ilc.texto.domain.Layer;
 import it.cnr.ilc.texto.domain.Tagset;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import it.cnr.ilc.texto.manager.annotation.Check;
 import it.cnr.ilc.texto.manager.annotation.Trigger;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
 import java.sql.SQLException;
@@ -54,6 +56,15 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
             } else {
                 throw new ManagerException("analysis is locked");
             }
+        }
+    }
+
+    @Check
+    public void checkLayers(AnnotationFeature previous, AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
+        Layer featurelayer = featureManager.load(annotationFeature.getFeature().getId()).getLayer();
+        Layer annotationLayer = annotationManager.load(annotationFeature.getAnnotation().getId()).getLayer();
+        if (!featurelayer.equals(annotationLayer)) {
+            throw new ManagerException("layer mismatch");
         }
     }
 

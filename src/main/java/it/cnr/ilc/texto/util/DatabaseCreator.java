@@ -179,7 +179,12 @@ public class DatabaseCreator {
                 .append("drop table if exists _credential;\n")
                 .append("create table _credential (user_id bigint primary key, password varchar(50));\n")
                 .append("drop table if exists _text;\n")
-                .append("create table _text (resource_id bigint primary key, text longtext);\n");
+                .append("create table _text (resource_id bigint primary key, text longtext);\n")
+                .append("drop table if exists _tokenannotation;\n")
+                .append("create table _tokenannotation (token_id bigint, annotation_id bigint);\n")
+                .append("alter table _tokenannotation add primary key pk_tokenannotation (token_id, annotation_id);\n")
+                .append("alter table _tokenannotation add constraint fk_tokenannotation_token foreign key (token_id) references Token (id);\n")
+                .append("alter table _tokenannotation add constraint fk_tokenannotation_annotation foreign key (annotation_id) references Annotation (id);\n");
         return builder.toString();
     }
 

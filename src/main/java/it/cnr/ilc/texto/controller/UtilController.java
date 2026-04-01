@@ -89,6 +89,10 @@ public class UtilController extends Controller {
         return utilManager.getRows(resource, offset);
     }
 
+    public static record AnnotationsRequest(List<Long> layers, Integer start, Integer end) {
+
+    }
+
     @PostMapping("resource/{id}/annotations")
     public List<Map<String, Object>> resourceAnnotations(@PathVariable("id") Long id, @RequestBody AnnotationsRequest request) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
         logManager.setMessage("get annotations on").appendMessage(Resource.class);
@@ -103,10 +107,6 @@ public class UtilController extends Controller {
         logManager.appendMessage(offset.toString());
         List<Layer> layers = checkLayers(request.layers);
         return utilManager.getAnnotations(resource, layers, offset);
-    }
-
-    public static record AnnotationsRequest(List<Long> layers, Integer start, Integer end) {
-
     }
 
     @PostMapping("resource/{id}/word-annotations")
@@ -233,18 +233,18 @@ public class UtilController extends Controller {
         List<Resource> resources = checkResources(request.resources);
         AisRequest requestCache = (AisRequest) accessManager.getSession().getCache().get("aisRequest");
         List<Map<String, Object>> data = (List<Map<String, Object>>) accessManager.getSession().getCache().get("aisData");
-       if (requestCache != null && data != null && !request.hasToRelaod(requestCache)) {
+        if (requestCache != null && data != null && !request.hasToRelaod(requestCache)) {
             logManager.appendMessage("using cache");
             return data;
         } else {
-            data = utilManager.ais(resources, request.featureId, request.value, request.width);
+            data = utilManager.ais(resources, request.featureId, request.value, request.width, request.featureExtraId);
             accessManager.getSession().getCache().put("aisRequest", request);
             accessManager.getSession().getCache().put("aisData", data);
         }
         return data;
     }
 
-    public static record AisRequest(List<Long> resources, Long featureId, String value, Integer width, Boolean reload) {
+    public static record AisRequest(List<Long> resources, Long featureId, String value, Integer width, Boolean reload, Long featureExtraId) {
 
         private boolean hasToRelaod(AisRequest cache) {
             return cache == null
@@ -256,7 +256,9 @@ public class UtilController extends Controller {
                     || (this.value == null && cache.value != null)
                     || (this.value != null && !this.value.equals(cache.value))
                     || (this.width == null && cache.width != null)
-                    || (this.width != null && !this.width.equals(cache.width));
+                    || (this.width != null && !this.width.equals(cache.width))
+                    || (this.featureExtraId == null && cache.featureExtraId != null)
+                    || (this.featureExtraId != null && !this.featureExtraId.equals(cache.featureExtraId));
 
         }
     }

@@ -828,7 +828,6 @@ public class DomainManager extends Manager {
         if (triggers != null) {
             for (TriggerInfo<E> trigger : triggers) {
                 trigger.method.invoke(trigger.object, previous, entity);
-
             }
         }
     }
