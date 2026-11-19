@@ -47,22 +47,13 @@ In `pom.xml` set:
 `     <!--<scope>provided</scope>-->`  
 `</dependency>`  
 
-In `doc/Install` there are an example of installation directory:  
-
-- `texto.jar` compiled jar file.
-- `texto.properties` properties file.  
-- `startup.sh` startup script file (must be executable).  
-- `shutdown.sh` shutdown script file (must be executable).  
-- `springboot.keystore` [keystore](https://spring.io/blog/2023/06/07/securing-spring-boot-applications-with-ssl) for Springboot certificate.
-- `logs` logs directory
-
 In the properties file, there are only the entries that are intended to be modified compared to the default values. Below are the default values:  
 
 `server.port=7300`  
 `server.port-shutdown=7301`  
 
 `server.ssl.key-store=springboot.keystore`  
-`server.ssl.key-store-password=keystorepassword`  
+`server.ssl.key-store-password=password`  
 `server.ssl.key-store-type=JKS`  
 `server.ssl.key-alias=springboot`  
 `server.ssl.key-password=password`  
@@ -77,7 +68,7 @@ In the properties file, there are only the entries that are intended to be modif
 
 `database.url=jdbc:mysql://localhost/texto?characterEncoding=UTF-8&serverTimezone=Europe/Rome`  
 `database.username=root`  
-`database.password=databasepassword`  
+`database.password=password`  
 `database.ping=select null`  
 
 `access.session-timeout=1800`  
