@@ -62,12 +62,12 @@ public class AnalysisManager extends EntityManager<Analysis> {
     private Layer lemmaLayer;
     private Layer posLayer;
     private Layer featsLayer;
-    private Map<String, Feature> sentenceFetures;
-    private Map<String, Feature> tokenFeatures;
-    private Map<String, Feature> formFeatures;
-    private Map<String, Feature> lemmaFeatures;
-    private Map<String, Feature> posFeatures;
-    private Map<String, Feature> featsFeatures;
+    private Map<String, Feature> sentenceFetures = Map.of();
+    private Map<String, Feature> tokenFeatures = Map.of();
+    private Map<String, Feature> formFeatures = Map.of();
+    private Map<String, Feature> lemmaFeatures = Map.of();
+    private Map<String, Feature> posFeatures = Map.of();
+    private Map<String, Feature> featsFeatures = Map.of();
 
     @PostConstruct
     private void loadLayers() throws SQLException, ReflectiveOperationException {
@@ -161,26 +161,29 @@ public class AnalysisManager extends EntityManager<Analysis> {
     }
 
     boolean isAnalysisLayer(Layer layer) {
-        return layer.equals(sentenceLayer)
+        return layer != null
+                && (layer.equals(sentenceLayer)
                 || layer.equals(tokenLayer)
                 || layer.equals(formLayer)
                 || layer.equals(lemmaLayer)
                 || layer.equals(posLayer)
-                || layer.equals(featsLayer);
+                || layer.equals(featsLayer));
     }
 
     boolean isAnalysisFeature(Feature feature) {
-        return sentenceFetures.containsValue(feature)
+        return feature != null
+                && (sentenceFetures.containsValue(feature)
                 || tokenFeatures.containsValue(feature)
                 || formFeatures.containsValue(feature)
                 || lemmaFeatures.containsValue(feature)
                 || posFeatures.containsValue(feature)
-                || featsFeatures.containsValue(feature);
+                || featsFeatures.containsValue(feature));
     }
 
     boolean isAnalysisTagset(Tagset tagset) {
-        return posFeatures.values().stream().anyMatch(f -> tagset.equals(f.getTagset()))
-                || featsFeatures.values().stream().anyMatch(f -> tagset.equals(f.getTagset()));
+        return tagset != null
+                && (posFeatures.values().stream().anyMatch(f -> tagset.equals(f.getTagset()))
+                || featsFeatures.values().stream().anyMatch(f -> tagset.equals(f.getTagset())));
     }
 
     @Override
@@ -190,10 +193,10 @@ public class AnalysisManager extends EntityManager<Analysis> {
 
     @Override
     public String getLog(Analysis analysis) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (analysis.getResource() == null || analysis.getValue() == null) {
-            return "" + analysis.getId();
-        } else {
+        try {
             return resourceManager.getLog(resourceManager.load(analysis.getResource().getId())) + " " + analysis.getValue();
+        } catch (NullPointerException e) {
+            return "" + analysis.getId();
         }
     }
 

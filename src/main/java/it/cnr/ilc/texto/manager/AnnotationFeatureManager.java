@@ -38,17 +38,37 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
         return AnnotationFeature.class;
     }
 
+    @Override
+    public String getLog(AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
+        try {
+            return annotationManager.getLog(annotationManager.load(annotationFeature.getAnnotation().getId())) + " "
+                    + featureManager.getLog(featureManager.load(annotationFeature.getFeature().getId())) + " "
+                    + annotationFeature.getValue();
+        } catch (NullPointerException e) {
+            return "" + annotationFeature.getId();
+        }
+    }
+
     @Trigger(event = Trigger.Event.PRE_CREATE)
-    @Trigger(event = Trigger.Event.PRE_REMOVE)
-    public void checkAnalysis(AnnotationFeature previous, AnnotationFeature annotationFeature) throws ManagerException {
+    public void checkAnalysisCreate(AnnotationFeature previous, AnnotationFeature annotationFeature) throws ManagerException {
         if (analysisManager.isAnalysisFeature(annotationFeature.getFeature())) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Trigger(event = Trigger.Event.PRE_REMOVE)
+    public void checkAnalysisRemove(AnnotationFeature previous, AnnotationFeature annotationFeature) throws ManagerException {
+        if (analysisManager.isAnalysisFeature(previous.getFeature())) {
             throw new ManagerException("analysis is locked");
         }
     }
 
     @Trigger(event = Trigger.Event.PRE_UPDATE)
     public void checkAnalysisUpdate(AnnotationFeature previous, AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (analysisManager.isAnalysisFeature(annotationFeature.getFeature())) {
+        if ((analysisManager.isAnalysisFeature(previous.getFeature())) || analysisManager.isAnalysisFeature(annotationFeature.getFeature())) {
+            if (!previous.getFeature().equals(annotationFeature.getFeature()) || !previous.getAnnotation().equals(annotationFeature.getAnnotation())) {
+                throw new ManagerException("analysis is locked");
+            }
             if (analysisManager.getLemmaFeatures().get("Lemma").equals(annotationFeature.getFeature())) {
                 analysisManager.updateLemma(previous, annotationFeature);
             } else if (analysisManager.getPosFeatures().get("UPOS").equals(annotationFeature.getFeature())) {
@@ -65,17 +85,6 @@ public class AnnotationFeatureManager extends EntityManager<AnnotationFeature> {
         Layer annotationLayer = annotationManager.load(annotationFeature.getAnnotation().getId()).getLayer();
         if (!featurelayer.equals(annotationLayer)) {
             throw new ManagerException("layer mismatch");
-        }
-    }
-
-    @Override
-    public String getLog(AnnotationFeature annotationFeature) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (annotationFeature.getAnnotation() == null || annotationFeature.getFeature() == null || annotationFeature.getValue() == null) {
-            return "" + annotationFeature.getId();
-        } else {
-            return annotationManager.getLog(annotationManager.load(annotationFeature.getAnnotation().getId())) + " "
-                    + featureManager.getLog(featureManager.load(annotationFeature.getFeature().getId())) + " "
-                    + annotationFeature.getValue();
         }
     }
 

@@ -41,7 +41,11 @@ public class FolderManager extends EntityManager<Folder> {
 
     @Override
     public String getLog(Folder folder) throws SQLException {
-        return getPath(folder);
+        try {
+            return getPath(folder.getParent()) + "/" + folder.getName();
+        } catch (NullPointerException e) {
+            return "" + folder.getId();
+        }
     }
 
     @Check
@@ -52,9 +56,6 @@ public class FolderManager extends EntityManager<Folder> {
     }
 
     public String getPath(Folder folder) throws SQLException {
-        if (folder == null) {
-            return "/";
-        }
         StringBuilder select = new StringBuilder();
         StringBuilder from = new StringBuilder();
         select.append("select concat('/', concat_ws('/', f").append(MAX_PATH_DEPTH - 1).append(".name");
@@ -93,8 +94,8 @@ public class FolderManager extends EntityManager<Folder> {
             StringBuilder sql = new StringBuilder();
             sql.append("insert into ").append(quote(Folder.class))
                     .append(" (id, status, time, name, user_id)")
-                    .append(" values (").append(id).append(", 1, now(), '")
-                    .append(user.getUsername()).append("', ").append(user.getId()).append(")");
+                    .append(" values (").append(id).append(", ").append(Status.VALID.ordinal()).append(", ").append(sqlValue(DomainManager.now())).append(", ")
+                    .append(sqlValue(user.getUsername())).append(", ").append(user.getId()).append(")");
             databaseManager.update(sql.toString());
         }
     }
@@ -108,18 +109,14 @@ public class FolderManager extends EntityManager<Folder> {
             StringBuilder sql = new StringBuilder();
             sql.append("insert into ").append(quoteHistory(Folder.class))
                     .append(" (id, status, time, name, description, user_id)")
-                    .append(" select id, ").append(Status.HISTORY).append(", time, name, description, user_id ")
-                    .append("from ").append(quote(Folder.class)).append(" where id = ").append(home.getId());
-            databaseManager.update(sql.toString());
-            sql.append("insert into ").append(quoteHistory(Folder.class))
-                    .append(" (id, status, time, name, description, user_id)")
-                    .append(" select id, ").append(Status.REMOVED).append(", now(), name, description, user_id ")
+                    .append(" select id, ").append(Status.REMOVED.ordinal()).append(", ").append(sqlValue(DomainManager.now())).append(", name, description, user_id ")
                     .append("from ").append(quote(Folder.class)).append(" where id = ").append(home.getId());
             databaseManager.update(sql.toString());
             sql = new StringBuilder();
             sql.append("delete from ").append(quote(Folder.class))
                     .append(" where id = ").append(home.getId());
             databaseManager.update(sql.toString());
+            domainManager.freeCache(home);
         }
     }
 

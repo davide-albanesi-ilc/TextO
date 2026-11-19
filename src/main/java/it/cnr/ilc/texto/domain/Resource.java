@@ -8,7 +8,7 @@ import it.cnr.ilc.texto.domain.annotation.Required;
  *
  * @author oakgen
  */
-public class Resource extends Entity implements Userable, Listable {
+public class Resource extends Entity implements Ownable, Listable {
 
     private Folder parent;
     private String name;

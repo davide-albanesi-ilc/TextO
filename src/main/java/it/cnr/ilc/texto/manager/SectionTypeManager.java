@@ -1,7 +1,6 @@
 package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.domain.Resource;
-import it.cnr.ilc.texto.domain.Section;
 import it.cnr.ilc.texto.domain.SectionType;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
@@ -36,7 +35,7 @@ public class SectionTypeManager extends EntityManager<SectionType> {
 
     public List<SectionType> load(SectionType sectionType) throws SQLException, ReflectiveOperationException {
         StringBuilder sql = new StringBuilder();
-        sql.append("select * from ").append(quote(Section.class))
+        sql.append("select * from ").append(quote(SectionType.class))
                 .append(" where parent_id = ").append(sectionType.getId());
         return load(sql.toString());
     }

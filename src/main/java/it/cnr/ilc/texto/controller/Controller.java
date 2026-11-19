@@ -34,8 +34,6 @@ public abstract class Controller {
     @ExceptionHandler(AuthorizationException.class)
     public ResponseEntity<String> handleException(AuthorizationException exception) throws SQLException {
         databaseManager.releaseRollbackConnection();
-        logManager.appendMessage(exception.getMessage());
-        monitorManager.setResult(exception);
         return new ResponseEntity(exception.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
@@ -47,14 +45,6 @@ public abstract class Controller {
         return new ResponseEntity(exception.getMessage(), HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(InterruptedException.class)
-    public ResponseEntity<String> handleException(InterruptedException exception) throws SQLException {
-        databaseManager.releaseRollbackConnection();
-        logManager.appendMessage("interrupted");
-        monitorManager.setResult(exception);
-        return new ResponseEntity(exception.getMessage(), HttpStatus.RESET_CONTENT);
-    }
-
     @ExceptionHandler(ManagerException.class)
     public ResponseEntity<String> handleException(ManagerException exception) throws SQLException {
         databaseManager.releaseRollbackConnection();
@@ -63,4 +53,23 @@ public abstract class Controller {
         return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InterruptedException.class)
+    public ResponseEntity<String> handleException(InterruptedException exception) throws SQLException {
+        databaseManager.releaseRollbackConnection();
+        logManager.appendMessage("interrupted");
+        monitorManager.setResult(exception);
+        return new ResponseEntity(exception.getMessage(), HttpStatus.RESET_CONTENT);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception exception) throws SQLException {
+        databaseManager.releaseRollbackConnection();
+        logManager.setException(exception);
+        monitorManager.setResult(exception);
+        if (logManager.isMessageEmty()) {
+            return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
+        } else {
+            return new ResponseEntity(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

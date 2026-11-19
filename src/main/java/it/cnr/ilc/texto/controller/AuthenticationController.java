@@ -36,7 +36,7 @@ public class AuthenticationController extends Controller {
         return token;
     }
 
-    @GetMapping("keepAlive")
+    @GetMapping("keep-alive")
     public void keepAlive() throws Exception {
         logManager.setMessage("keep alive");
     }
@@ -47,7 +47,5 @@ public class AuthenticationController extends Controller {
         accessManager.endSession();
     }
 
-    public static record Credential(String username, String password) {
-
-    }
+    public static record Credential(String username, String password) {}
 }

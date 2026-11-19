@@ -2,9 +2,8 @@ package it.cnr.ilc.texto.manager;
 
 import it.cnr.ilc.texto.domain.Test;
 import it.cnr.ilc.texto.manager.annotation.Check;
-import it.cnr.ilc.texto.manager.annotation.Trigger;
-import it.cnr.ilc.texto.manager.annotation.Trigger.Event;
 import it.cnr.ilc.texto.manager.exception.ManagerException;
+import java.sql.SQLException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,25 +24,13 @@ public class TestManager extends EntityManager<Test> {
     }
 
     @Check
-    public void ezzelo(Test previous, Test entity) throws ManagerException {
-        if (Integer.valueOf(0).equals(entity.getIntegert())) {
-            throw new ManagerException("ezzelo");
+    public void checking(Test previous, Test entity) throws ManagerException, SQLException {
+        if (Integer.valueOf(-1).equals(entity.getIntegert())) {
+            throw new ManagerException("invalid integert");
+        }
+        if (Integer.valueOf(-2).equals(entity.getIntegert())) {
+            throw new SQLException("sql error");
         }
     }
 
-    @Trigger(event = Event.POST_CREATE)
-    public void mandorla(Test previous, Test entity) {
-        System.out.println("mandorla");
-    }
-
-    @Trigger(event = Event.POST_CREATE)
-    @Trigger(event = Event.POST_REMOVE)
-    public void pinolo(Test previous, Test entity) {
-        System.out.println("pinolo");
-    }
-
-    @Trigger(event = Event.POST_CREATE)
-    public void nocciola(Test previous, Test entity) {
-        System.out.println("nocciola");
-    }
 }

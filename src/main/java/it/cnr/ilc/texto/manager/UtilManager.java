@@ -196,7 +196,7 @@ public class UtilManager extends Manager {
                 .append(" rs.name \"resource_name\",\n")
                 .append(" sc.id section_id,\n")
                 .append(" sc.index \"section_index\",\n")
-                .append(" t.row_id,\n ")
+                .append(" t.row_id,\n")
                 .append(" rw.number \"row_number\",\n")
                 .append(" t.number,\n")
                 .append(" t.start,\n")

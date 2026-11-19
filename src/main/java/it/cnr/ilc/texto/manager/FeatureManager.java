@@ -39,24 +39,23 @@ public class FeatureManager extends EntityManager<Feature> {
 
     @Override
     public String getLog(Feature feature) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (feature.getLayer() == null || feature.getName() == null) {
+        try {
+            return layerManager.getLog(layerManager.load(feature.getLayer().getId())) + " " + feature.getName();
+        } catch (NullPointerException e) {
             return "" + feature.getId();
-        } else {
-            return layerManager.getLog(layerManager.load(feature.getLayer().getId())) + " "
-                    + feature.getName();
         }
     }
 
     @Trigger(event = Trigger.Event.PRE_UPDATE)
     @Trigger(event = Trigger.Event.PRE_REMOVE)
     public void checkAnalysis(Feature previous, Feature feature) throws ManagerException {
-        if (analysisManager.isAnalysisFeature(feature)) {
+        if (analysisManager.isAnalysisFeature(previous) || analysisManager.isAnalysisFeature(feature)) {
             throw new ManagerException("analysis is locked");
         }
     }
 
     @Check
-    protected void checkTagset(Feature previous, Feature feature) throws ManagerException {
+    public void checkTagset(Feature previous, Feature feature) throws ManagerException {
         if (FeatureType.TAGSET.equals(feature.getType()) && feature.getTagset() == null) {
             throw new ManagerException("tagset required");
         }

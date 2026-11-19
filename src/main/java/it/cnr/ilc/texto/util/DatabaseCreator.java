@@ -20,9 +20,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.net.URISyntaxException;
-import org.reflections.Reflections;
-import org.reflections.util.ConfigurationBuilder;
 import it.cnr.ilc.texto.domain.annotation.Indexed;
+import it.cnr.ilc.texto.domain.annotation.Unique;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -44,7 +47,7 @@ public class DatabaseCreator {
         SQL_TYPES.put(Float.class, "float");
         SQL_TYPES.put(Double.class, "double");
         SQL_TYPES.put(LocalDate.class, "date");
-        SQL_TYPES.put(LocalDateTime.class, "datetime");
+        SQL_TYPES.put(LocalDateTime.class, "datetime(6)");
         SQL_TYPES.put(Enum.class, "varchar(20)");
         SQL_TYPES.put(Entity.class, "bigint");
     }
@@ -65,6 +68,7 @@ public class DatabaseCreator {
         builder.append(entitiesClasses.stream().map(c -> getCreationTable(c)).collect(Collectors.joining("\n"))).append("\n");
         builder.append(entitiesClasses.stream().map(c -> getCreationHistory(c)).collect(Collectors.joining("\n"))).append("\n");
         builder.append(entitiesClasses.stream().map(c -> getCreationConstraint(c)).filter(s -> !s.isEmpty()).collect(Collectors.joining(""))).append("\n");
+        builder.append(entitiesClasses.stream().map(c -> getCreationUnique(c)).filter(s -> !s.isEmpty()).collect(Collectors.joining(""))).append("\n");
         builder.append(entitiesClasses.stream().map(c -> getCreationIndex(c)).filter(s -> !s.isEmpty()).collect(Collectors.joining(""))).append("\n");
         builder.append(getExtraCreation()).append("\n");
         builder.append("SET FOREIGN_KEY_CHECKS=1;\n\n");
@@ -77,7 +81,7 @@ public class DatabaseCreator {
         builder.append("create table `").append(clazz.getSimpleName()).append("` (\n")
                 .append(" id bigint not null,\n")
                 .append(" status tinyint not null,\n")
-                .append(" time datetime not null,\n");
+                .append(" time datetime(6) not null,\n");
         Entity.getters(clazz).stream()
                 .map(m -> getCreationField(m))
                 .forEach(s -> builder.append(s));
@@ -120,7 +124,7 @@ public class DatabaseCreator {
         builder.append("create table `").append(clazz.getSimpleName()).append("_` (\n")
                 .append(" id bigint not null,\n")
                 .append(" status tinyint not null,\n")
-                .append(" time datetime not null,\n");
+                .append(" time datetime(6) not null,\n");
         Entity.getters(clazz).stream()
                 .map(m -> getCreationField(m))
                 .forEach(s -> builder.append(s));
@@ -149,9 +153,8 @@ public class DatabaseCreator {
     private String getCreationIndex(Class<? extends Entity> clazz) {
         StringBuilder builder = new StringBuilder();
         Entity.getters(clazz).stream()
-                .filter(m -> m.getAnnotationsByType(Indexed.class) != null)
-                .map(m -> getCreationIndex(m))
-                .forEach(s -> builder.append(s));
+                .filter(m -> m.isAnnotationPresent(Indexed.class))
+                .forEach(m -> builder.append(getCreationIndex(m)));
         return builder.toString();
     }
 
@@ -159,14 +162,48 @@ public class DatabaseCreator {
         Indexed[] indexeds = method.getAnnotationsByType(Indexed.class);
         StringBuilder builder = new StringBuilder();
         for (Indexed indexed : indexeds) {
-            String table = method.getDeclaringClass().getSimpleName();
-            String name = indexed.name();
+            Class<? extends Entity> clazz = (Class<? extends Entity>) method.getDeclaringClass();
+            String table = clazz.getSimpleName();
             String field = getSQLField(method);
-            String group = Stream.concat(Stream.of(field), Arrays.stream(indexed.group())).collect(Collectors.joining(", "));
+            String name = indexed.name();
+            Stream<String> groupStream = Arrays.stream(indexed.group()).map(g -> getSQLField(getGetter(clazz, g)));
+            String group = Stream.concat(Stream.of(field), groupStream).collect(Collectors.joining(", "));
             builder.append("create index index_").append(table).append("_").append(name)
                     .append(" on `").append(table).append("` (").append(group).append(");\n");
         }
         return builder.toString();
+    }
+
+    private String getCreationUnique(Class<? extends Entity> clazz) {
+        StringBuilder builder = new StringBuilder();
+        Entity.getters(clazz).stream()
+                .filter(m -> m.isAnnotationPresent(Unique.class))
+                .forEach(m -> builder.append(getCreationUnique(m)));
+        return builder.toString();
+    }
+
+    private String getCreationUnique(Method method) {
+        Unique[] uniques = method.getAnnotationsByType(Unique.class);
+        StringBuilder builder = new StringBuilder();
+        for (Unique unique : uniques) {
+            String table = method.getDeclaringClass().getSimpleName();
+            String field = getSQLField(method);
+            String name = unique.name().isEmpty() ? field : unique.name();
+            Class<? extends Entity> clazz = (Class<? extends Entity>) method.getDeclaringClass();
+            Stream<String> groupStream = Arrays.stream(unique.group()).map(g -> getSQLField(getGetter(clazz, g)));
+            String group = Stream.concat(Stream.of(field), groupStream).collect(Collectors.joining(", "));
+            builder.append("alter table `").append(table).append("` add constraint uq_").append(table).append("_").append(name)
+                    .append(" unique (").append(group).append(");\n");
+        }
+        return builder.toString();
+    }
+
+    private Method getGetter(Class<? extends Entity> clazz, String field) {
+        try {
+            return clazz.getDeclaredMethod("get" + Character.toUpperCase(field.charAt(0)) + field.substring(1));
+        } catch (ReflectiveOperationException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private String getExtraCreation() {
@@ -201,12 +238,12 @@ public class DatabaseCreator {
 
     private String initEntities() {
         StringBuilder builder = new StringBuilder();
-        builder.append("insert into Role (id, status, time, name) values (1, 1, now(), 'Administrator');\n")
-                .append("insert into Role (id, status, time, name) values (2, 1, now(), 'Editor');\n")
-                .append("insert into Role (id, status, time, name) values (3, 1, now(), 'Viewer');\n")
-                .append("insert into User (id, status, time, name, username, role_id, enabled) values (4, 1, now(), 'Administrator', 'admin', 1, true);\n")
+        builder.append("insert into Role (id, status, time, name) values (1, 1, now(6), 'Administrator');\n")
+                .append("insert into Role (id, status, time, name) values (2, 1, now(6), 'Editor');\n")
+                .append("insert into Role (id, status, time, name) values (3, 1, now(6), 'Viewer');\n")
+                .append("insert into User (id, status, time, name, username, role_id, enabled) values (4, 1, now(6), 'Administrator', 'admin', 1, true);\n")
                 .append("insert into _credential (user_id, password) values (4, upper(sha1('password')));\n")
-                .append("insert into Folder (id, status, time, name, user_id) values (5, 1, now(), 'Administrator', 4);\n")
+                .append("insert into Folder (id, status, time, name, user_id) values (5, 1, now(6), 'Administrator', 4);\n")
                 .append("update _sequence set id = 6;\n");
         return builder.toString();
     }
@@ -224,18 +261,18 @@ public class DatabaseCreator {
             if (split[0].equals(Layer.class.getSimpleName())) {
                 layerId = i++;
                 builder.append("insert into Layer (id, status, time, name, description, color, overlapping) values (")
-                        .append(layerId).append(", 1, now(), '").append(split[1]).append("', '").append(split[2]).append("', '").append(split[3]).append("', false);\n");
+                        .append(layerId).append(", 1, now(6), '").append(split[1]).append("', '").append(split[2]).append("', '").append(split[3]).append("', false);\n");
             } else if (split[0].equals(Tagset.class.getSimpleName())) {
                 tagsetId = i++;
                 builder.append("insert into Tagset (id, status, time, name, description) values (")
-                        .append(tagsetId).append(", 1, now(), '").append(split[1]).append("', '").append(split[2]).append("');\n");
+                        .append(tagsetId).append(", 1, now(6), '").append(split[1]).append("', '").append(split[2]).append("');\n");
                 tagsets.put(split[1], tagsetId);
             } else if (split[0].equals(TagsetItem.class.getSimpleName())) {
                 builder.append("insert into TagsetItem (id, status, time, tagset_id, name, description) values (")
-                        .append(i++).append(", 1, now(), ").append(tagsetId).append(", '").append(split[1]).append("', '").append(split[2]).append("');\n");
+                        .append(i++).append(", 1, now(6), ").append(tagsetId).append(", '").append(split[1]).append("', '").append(split[2]).append("');\n");
             } else if (split[0].equals(Feature.class.getSimpleName())) {
                 builder.append("insert into Feature (id, status, time, layer_id, name, description, type, tagset_id) values (")
-                        .append(i++).append(", 1, now(), ").append(layerId).append(", '").append(split[1]).append("', '").append(split[2]).append("', '").append(split[3]).append("', ")
+                        .append(i++).append(", 1, now(6), ").append(layerId).append(", '").append(split[1]).append("', '").append(split[2]).append("', '").append(split[3]).append("', ")
                         .append(split[3].equals(FeatureType.TAGSET.toString()) ? tagsets.get(split[4]) : "null").append(");\n");
             }
         }
@@ -243,17 +280,42 @@ public class DatabaseCreator {
         return builder.toString();
     }
 
+    public static void save(Path path, CharSequence script) throws IOException {
+        Files.writeString(path, script);
+    }
+
+    public static void execute(Connection connection, CharSequence script) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            String[] lines = script.toString().split("\n");
+            int count = 0;
+            for (String line : lines) {
+                System.out.println(count++ + " / " + lines.length);
+                if (!line.isBlank()) {
+                    try {
+                        statement.execute(line);
+                    } catch (SQLException e) {
+                        System.err.println(line);
+                        throw e;
+                    }
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) throws Exception {
-        DatabaseCreator creator = new DatabaseCreator();
-        Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(Entity.class.getPackageName()));
-        reflections.getSubTypesOf(Entity.class).stream().forEach(c -> creator.addEntityClass(c));
-        creator.removeEntityClass(Test.class);
-        StringBuilder script = new StringBuilder();
-        script.append(creator.getScript());
-        script.append(creator.initAccess());
-        script.append(creator.initEntities());
-        script.append(creator.initAnalysisLayers());
-        System.out.println(script);
+        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/texto?characterEncoding=UTF-8&serverTimezone=Europe/Rome", "root", "root")) {
+            DatabaseCreator creator = new DatabaseCreator();
+//            Reflections reflections = new Reflections(new ConfigurationBuilder().forPackage(Entity.class.getPackageName()));
+//            reflections.getSubTypesOf(Entity.class).stream().forEach(c -> creator.addEntityClass(c));
+            creator.addEntityClass(Test.class);
+            StringBuilder script = new StringBuilder();
+            script.append(creator.getScript());
+//            script.append(creator.initAccess());
+//            script.append(creator.initEntities());
+//            script.append(creator.initAnalysisLayers());
+            save(Path.of("/Users/oakgen/Desktop/create.sql"), script);
+//            execute(connection, script);
+        }
     }
 
 }

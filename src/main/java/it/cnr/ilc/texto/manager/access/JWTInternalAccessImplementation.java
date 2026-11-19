@@ -6,7 +6,8 @@ import io.jsonwebtoken.Jwts;
 import it.cnr.ilc.texto.domain.User;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -30,15 +31,15 @@ public class JWTInternalAccessImplementation extends InternalAccessImplementatio
 
     @Override
     protected void init() throws AuthorizationException {
-        try (InputStream input = JWTExternalAccessImplementation.class.getResourceAsStream("/public.pem")) {
-            publicKey = new String(input.readAllBytes())
+        try {
+            publicKey = new String(Files.readAllBytes(Paths.get(environment.getProperty("jwt.public-key", "public.pem"))))
                     .replaceAll("-----.*-----", "")
                     .replaceAll("\n", "");
         } catch (IOException e) {
             throw new AuthorizationException("public key not found");
         }
-        try (InputStream input = JWTExternalAccessImplementation.class.getResourceAsStream("/private8.pem")) {
-            privateKey = new String(input.readAllBytes())
+        try {
+            privateKey = new String(Files.readAllBytes(Paths.get(environment.getProperty("jwt.private-key", "private8.pem"))))
                     .replaceAll("-----.*-----", "")
                     .replaceAll("\n", "");
         } catch (IOException e) {
@@ -47,8 +48,7 @@ public class JWTInternalAccessImplementation extends InternalAccessImplementatio
     }
 
     @Override
-    protected String retrieveToken
-    (String token) throws Exception {
+    protected String retrieveToken(String token) throws Exception {
         if (!token.toLowerCase().startsWith("bearer")) {
             throw new AuthorizationException("invalid authorization parameter");
         }
@@ -57,8 +57,6 @@ public class JWTInternalAccessImplementation extends InternalAccessImplementatio
         String[] chunks = token.split("\\.");
         return chunks[1];
     }
-
-    
 
     private Claims validate(String jwtToken) throws AuthorizationException {
         String algorithm = environment.getProperty("jwt.algorithm", "RSA");

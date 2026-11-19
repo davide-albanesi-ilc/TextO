@@ -71,25 +71,24 @@ public class ResourceManager extends EntityManager<Resource> {
 
     @Override
     public String getLog(Resource resource) throws SQLException {
-        StringBuilder path = new StringBuilder();
-        if (resource.getParent() != null) {
-            path.append(folderManager.getPath(resource.getParent())).append("/");
+        try {
+            return folderManager.getPath(resource.getParent()) + "/" + resource.getName();
+        } catch (NullPointerException e) {
+            return "" + resource.getId();
         }
-        path.append(resource.getName());
-        return path.toString();
     }
 
     @Check
     public void exists(Resource previous, Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
         if (folderManager.exists(resource.getParent(), resource.getName())) {
-            throw new ManagerException("name exsists");
+            throw new ManagerException("name already exists");
         }
     }
 
     @Trigger(event = Event.PRE_REMOVE)
     public void removeSections(Resource previous, Resource resource) throws SQLException, ReflectiveOperationException, ManagerException {
-        sectionManager.remove(resource);
-        sectionTypeManager.remove(resource);
+        sectionManager.remove(previous);
+        sectionTypeManager.remove(previous);
     }
 
     public Set<String> getUploaders() {

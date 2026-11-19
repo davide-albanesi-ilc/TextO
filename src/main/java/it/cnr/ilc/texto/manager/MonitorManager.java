@@ -34,7 +34,7 @@ public class MonitorManager extends Manager {
         }
     }
 
-    public void endRequest() throws ManagerException {
+    public void endRequest() {
         String uuid = threads.remove(Thread.currentThread());
         if (uuid != null) {
             new Timer().schedule(new TimerTask() {

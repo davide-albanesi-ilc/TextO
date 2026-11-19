@@ -35,10 +35,10 @@ public class RowManager extends EntityManager<Row> {
 
     @Override
     public String getLog(Row row) throws SQLException, ReflectiveOperationException {
-        if (row.getResource() == null || row.getStart() == null || row.getEnd() == null || row.getNumber() == null) {
-            return "" + row.getId();
-        } else {
+        try {
             return resourceManager.getLog(resourceManager.load(row.getResource().getId())) + " " + row.getNumber();
+        } catch (NullPointerException e) {
+            return "" + row.getId();
         }
     }
 

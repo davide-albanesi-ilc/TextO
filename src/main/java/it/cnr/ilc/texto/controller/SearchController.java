@@ -58,7 +58,5 @@ public class SearchController extends Controller {
         }
     }
 
-    public static record KwicRequest(Set<Resource> resources, String query, Integer width) {
-
-    }
+    public static record KwicRequest(Set<Resource> resources, String query, Integer width) {}
 }

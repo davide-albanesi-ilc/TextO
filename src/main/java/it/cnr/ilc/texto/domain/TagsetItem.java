@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.domain;
 
+import it.cnr.ilc.texto.domain.annotation.Final;
 import it.cnr.ilc.texto.domain.annotation.Unique;
 import it.cnr.ilc.texto.domain.annotation.Required;
 
@@ -31,6 +32,7 @@ public class TagsetItem extends Entity {
         this.description = description;
     }
 
+    @Final
     @Required
     public Tagset getTagset() {
         return tagset;
