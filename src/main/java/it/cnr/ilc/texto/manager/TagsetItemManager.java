@@ -27,10 +27,22 @@ public class TagsetItemManager extends EntityManager<TagsetItem> {
     private AnnotationFeatureManager annotationFeatureManager;
 
     @Trigger(event = Trigger.Event.PRE_CREATE)
-    @Trigger(event = Trigger.Event.PRE_UPDATE)
-    @Trigger(event = Trigger.Event.PRE_REMOVE)
-    public void checkAnalysis(TagsetItem previous, TagsetItem tagsetItem) throws SQLException, ReflectiveOperationException, ManagerException {
+    public void checkAnalysisCreate(TagsetItem previous, TagsetItem tagsetItem) throws SQLException, ReflectiveOperationException, ManagerException {
         if (analysisManager.isAnalysisTagset(tagsetItem.getTagset())) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Trigger(event = Trigger.Event.PRE_UPDATE)
+    public void checkAnalysisUpdate(TagsetItem previous, TagsetItem tagsetItem) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (analysisManager.isAnalysisTagset(previous.getTagset()) || analysisManager.isAnalysisTagset(tagsetItem.getTagset())) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Trigger(event = Trigger.Event.PRE_REMOVE)
+    public void checkAnalysisRemove(TagsetItem previous, TagsetItem tagsetItem) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (analysisManager.isAnalysisTagset(previous.getTagset())) {
             throw new ManagerException("analysis is locked");
         }
     }
@@ -49,11 +61,10 @@ public class TagsetItemManager extends EntityManager<TagsetItem> {
 
     @Override
     public String getLog(TagsetItem tagsetItem) throws SQLException, ReflectiveOperationException {
-        if (tagsetItem.getTagset() == null || tagsetItem.getName() == null) {
+        try {
+            return tagsetManager.getLog(tagsetManager.load(tagsetItem.getTagset().getId())) + " " + tagsetItem.getName();
+        } catch (NullPointerException e) {
             return "" + tagsetItem.getId();
-        } else {
-            return tagsetManager.getLog(tagsetManager.load(tagsetItem.getTagset().getId())) + " "
-                    + tagsetItem.getName();
         }
     }
 

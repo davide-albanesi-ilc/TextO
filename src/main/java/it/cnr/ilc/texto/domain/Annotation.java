@@ -7,7 +7,7 @@ import it.cnr.ilc.texto.domain.annotation.Required;
  *
  * @author oakgen
  */
-public class Annotation extends Entity implements Userable {
+public class Annotation extends Entity implements Ownable {
 
     private Layer layer;
     private Resource resource;

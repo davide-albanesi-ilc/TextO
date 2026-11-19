@@ -47,6 +47,9 @@ public class AnnotationManager extends EntityManager<Annotation> {
     @Lazy
     @Autowired
     private AnalysisManager analysisManager;
+    @Autowired
+    private AccessManager accessManager;
+    
 
     @Override
     protected Class<Annotation> entityClass() {
@@ -55,49 +58,73 @@ public class AnnotationManager extends EntityManager<Annotation> {
 
     @Override
     public String getLog(Annotation annotation) throws SQLException, ReflectiveOperationException {
-        if (annotation.getLayer() == null || annotation.getResource() == null || annotation.getStart() == null || annotation.getEnd() == null) {
-            return "" + annotation.getId();
-        } else {
+        try {
             return layerManager.getLog(layerManager.load(annotation.getLayer().getId())) + " "
                     + resourceManager.getLog(resourceManager.load(annotation.getResource().getId())) + " "
                     + "[" + annotation.getStart() + "-" + annotation.getEnd() + "]";
+        } catch (NullPointerException e) {
+            return "" + annotation.getId();
         }
     }
 
     @Trigger(event = Event.PRE_CREATE)
-    @Trigger(event = Event.PRE_UPDATE)
-    @Trigger(event = Event.PRE_REMOVE)
-    public void checkAnalysis(Annotation previous, Annotation annotation) throws ManagerException {
+    public void setMissingUser(Annotation previous, Annotation annotation) throws ManagerException {
+        if (annotation.getUser() == null) {
+            annotation.setUser(accessManager.getUser());
+        }
+    }
+
+    @Trigger(event = Event.PRE_CREATE)
+    public void checkAnalysisCreate(Annotation previous, Annotation annotation) throws ManagerException {
         if (analysisManager.isAnalysisLayer(annotation.getLayer())) {
             throw new ManagerException("analysis is locked");
         }
     }
 
-    @Trigger(event = Event.PRE_CREATE)
+    @Trigger(event = Event.PRE_UPDATE)
+    public void checkAnalysisUpdate(Annotation previous, Annotation annotation) throws ManagerException {
+        if (analysisManager.isAnalysisLayer(previous.getLayer()) || analysisManager.isAnalysisLayer(annotation.getLayer())) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Trigger(event = Event.PRE_REMOVE)
+    public void checkAnalysisRemove(Annotation previous, Annotation annotation) throws ManagerException {
+        if (analysisManager.isAnalysisLayer(previous.getLayer())) {
+            throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Trigger(event = Event.POST_CREATE)
     public void createTokenAnnotation(Annotation previous, Annotation annotation) throws SQLException {
         StringBuilder builder = new StringBuilder();
         builder.append("insert into _tokenannotation select id, ").append(annotation.getId())
                 .append(" from ").append(quote(Token.class))
-                .append(" where start >= ").append(annotation.getStart()).append(" and end <= ").append(annotation.getStart());
+                .append(" where resource_id = ").append(annotation.getResource().getId())
+                .append(" and start >= ").append(annotation.getStart()).append(" and end <= ").append(annotation.getEnd());
         databaseManager.update(builder.toString());
     }
 
     @Trigger(event = Event.PRE_REMOVE)
     public void removeTokenAnnotation(Annotation previous, Annotation annotation) throws SQLException {
         StringBuilder builder = new StringBuilder();
-        builder.append("delete from _tokenannotation where annotation_id = ").append(annotation.getId());
+        builder.append("delete from _tokenannotation where annotation_id = ").append(previous.getId());
         databaseManager.update(builder.toString());
     }
 
     @Trigger(event = Event.PRE_UPDATE)
-    public void updateTokenAnnotation(Annotation previous, Annotation annotation) throws SQLException {
+    public void updateTokenAnnotationPre(Annotation previous, Annotation annotation) throws SQLException {
         removeTokenAnnotation(previous, annotation);
+    }
+
+    @Trigger(event = Event.POST_UPDATE)
+    public void updateTokenAnnotationPost(Annotation previous, Annotation annotation) throws SQLException {
         createTokenAnnotation(previous, annotation);
     }
 
     @Trigger(event = Event.PRE_REMOVE, order = 1)
     public void removeAnnotationFeatures(Annotation previous, Annotation annotation) throws SQLException, ReflectiveOperationException, ManagerException {
-        annotationFeatureManager.remove(annotation);
+        annotationFeatureManager.remove(previous);
     }
 
     @Check

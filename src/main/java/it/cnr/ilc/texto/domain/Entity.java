@@ -1,12 +1,12 @@
 package it.cnr.ilc.texto.domain;
 
 import it.cnr.ilc.texto.controller.serializer.EntitySerializer;
-import it.cnr.ilc.texto.domain.annotation.Ignore;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
@@ -61,9 +61,18 @@ public abstract class Entity {
     }
 
     public static List<Method> getters(Class<? extends Entity> clazz) {
-        return Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> m.getName().startsWith("get") && !m.isAnnotationPresent(Ignore.class))
-                .collect(Collectors.toList());
+        Field[] fields = clazz.getDeclaredFields();
+        List<Method> getters = new ArrayList<>(fields.length);
+        for (Field field : fields) {
+            if (!Modifier.isStatic(field.getModifiers()) && !field.isSynthetic()) {
+                try {
+                    getters.add(clazz.getDeclaredMethod("get" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1)));
+                } catch (NoSuchMethodException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
+        return getters;
     }
 
 }

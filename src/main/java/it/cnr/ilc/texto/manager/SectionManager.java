@@ -34,10 +34,10 @@ public class SectionManager extends EntityManager<Section> {
 
     @Override
     public String getLog(Section section) throws SQLException, ReflectiveOperationException {
-        if (section.getResource() == null || section.getTitle() == null) {
-            return "" + section.getId();
-        } else {
+        try {
             return resourceManager.getLog(resourceManager.load(section.getResource().getId())) + " " + section.getTitle();
+        } catch (NullPointerException e) {
+            return "" + section.getId();
         }
     }
 
@@ -50,7 +50,7 @@ public class SectionManager extends EntityManager<Section> {
 
     @Trigger(event = Event.PRE_REMOVE)
     public void removeRows(Section previous, Section section) throws SQLException, ReflectiveOperationException, ManagerException {
-        rowManager.remove(section);
+        rowManager.remove(previous);
     }
 
     public List<Section> load(Resource resource) throws SQLException, ReflectiveOperationException {

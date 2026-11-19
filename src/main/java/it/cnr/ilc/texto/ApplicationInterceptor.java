@@ -36,7 +36,7 @@ public class ApplicationInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         if (!request.getMethod().equals(RequestMethod.OPTIONS.name())) {
-            logManager.logMessage(ex);
+            logManager.logMessage();
             monitorManager.endRequest();
             accessManager.endRequest();
         }

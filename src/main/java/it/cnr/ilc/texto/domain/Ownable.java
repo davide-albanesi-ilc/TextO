@@ -4,7 +4,7 @@ package it.cnr.ilc.texto.domain;
  *
  * @author oakgen
  */
-public interface Userable {
+public interface Ownable {
     
     public User getUser();
 

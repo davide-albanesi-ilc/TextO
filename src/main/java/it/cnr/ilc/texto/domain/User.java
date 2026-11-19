@@ -1,7 +1,6 @@
 package it.cnr.ilc.texto.domain;
 
 import it.cnr.ilc.texto.domain.annotation.Unique;
-import it.cnr.ilc.texto.domain.annotation.Ignore;
 import it.cnr.ilc.texto.domain.annotation.Matched;
 import it.cnr.ilc.texto.domain.annotation.Required;
 
@@ -9,7 +8,7 @@ import it.cnr.ilc.texto.domain.annotation.Required;
  *
  * @author oakgen
  */
-public class User extends Entity implements Userable {
+public class User extends Entity implements Ownable {
 
     private Role role;
     private String username;
@@ -63,7 +62,6 @@ public class User extends Entity implements Userable {
     }
 
     @Override
-    @Ignore
     public User getUser() {
         return this;
     }

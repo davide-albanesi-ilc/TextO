@@ -1,21 +1,33 @@
 package it.cnr.ilc.texto;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import it.cnr.ilc.texto.controller.Controller;
 import it.cnr.ilc.texto.manager.AccessManager;
 import it.cnr.ilc.texto.manager.DatabaseManager;
 import it.cnr.ilc.texto.manager.DomainManager;
 import it.cnr.ilc.texto.manager.LogManager;
 import it.cnr.ilc.texto.manager.MonitorManager;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -28,15 +40,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
 
 @Configuration
 @SpringBootApplication
+@RestControllerAdvice
 @RestController
 @RequestMapping("/")
-public class Application implements WebMvcConfigurer {
+public class Application implements WebMvcConfigurer, Filter {
 
     public static void main(String[] args) throws IOException {
         try (ConfigurableApplicationContext context = SpringApplication.run(Application.class, args)) {
@@ -79,7 +95,7 @@ public class Application implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS")
                 .allowedOrigins("*");
     }
 
@@ -127,4 +143,47 @@ public class Application implements WebMvcConfigurer {
         return paths.stream().collect(Collectors.toList());
     }
 
+    private static final int WRAP_LIMIT = 8192;
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        Logger logger = (Logger) LoggerFactory.getLogger(ApplicationInterceptor.class);
+        if (logger.getEffectiveLevel() != Level.OFF) {
+            ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper((HttpServletRequest) request, WRAP_LIMIT);
+            ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper((HttpServletResponse) response);
+            chain.doFilter(wrappedRequest, wrappedResponse);
+            logger.debug(getLog(wrappedRequest));
+            logger.debug(getLog(wrappedResponse, wrappedRequest.getRequestId()));
+            wrappedResponse.copyBodyToResponse();
+        } else {
+            chain.doFilter(request, response);
+        }
+    }
+
+    private String getLog(ContentCachingRequestWrapper request) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        builder.append("(").append(request.getRequestId()).append(") ")
+                .append("[").append(request.getRemoteAddr()).append(":").append(request.getRemotePort()).append("] ")
+                .append(request.getMethod()).append(" ")
+                .append("'").append(request.getServletPath())
+                .append(request.getQueryString() == null ? "" : "?" + URLDecoder.decode(request.getQueryString(), StandardCharsets.UTF_8)).append("'");
+        byte[] content = request.getContentAsByteArray();
+        if (content.length > 0) {
+            String body = new String(content, 0, Math.min(content.length, WRAP_LIMIT)).replaceAll("\\s+", " ");
+            builder.append(" ").append(request.getContentType()).append(" '").append(body).append("'");
+        }
+        return builder.toString();
+    }
+
+    private String getLog(ContentCachingResponseWrapper response, String requestId) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("(").append(requestId).append(") ")
+                .append(response.getStatus());
+        byte[] content = response.getContentAsByteArray();
+        if (content.length > 0) {
+            String body = new String(content, 0, Math.min(content.length, WRAP_LIMIT)).replaceAll("\\s+", " ");
+            builder.append(" ").append(response.getContentType()).append(" '").append(body).append("'");
+        }
+        return builder.toString();
+    }
 }

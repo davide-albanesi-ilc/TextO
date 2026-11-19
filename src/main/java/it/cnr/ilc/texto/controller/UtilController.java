@@ -7,6 +7,8 @@ import it.cnr.ilc.texto.domain.Offset;
 import it.cnr.ilc.texto.domain.Resource;
 import it.cnr.ilc.texto.domain.Section;
 import it.cnr.ilc.texto.manager.AnalysisManager;
+import it.cnr.ilc.texto.manager.AnnotationFeatureManager;
+import it.cnr.ilc.texto.manager.AnnotationManager;
 import it.cnr.ilc.texto.manager.FeatureManager;
 import it.cnr.ilc.texto.manager.LayerManager;
 import it.cnr.ilc.texto.manager.ResourceManager;
@@ -48,6 +50,15 @@ public class UtilController extends Controller {
     private FeatureManager featureManager;
     @Autowired
     private AnalysisManager analysisManager;
+    @Autowired
+    private AnnotationManager annotationManager;
+    @Autowired
+    private AnnotationFeatureManager annotationFeatureManager;
+
+    @Autowired
+    private AnnotationController annotationController;
+    @Autowired
+    private AnnotationFeatureController annotationFeatureController;
 
     @GetMapping("resource/{id}/sections")
     public List<Map<String, Object>> sections(@PathVariable("id") Long id, @RequestParam(required = false) boolean lazy) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
@@ -89,9 +100,7 @@ public class UtilController extends Controller {
         return utilManager.getRows(resource, offset);
     }
 
-    public static record AnnotationsRequest(List<Long> layers, Integer start, Integer end) {
-
-    }
+    public static record AnnotationsRequest(List<Long> layers, Integer start, Integer end) {}
 
     @PostMapping("resource/{id}/annotations")
     public List<Map<String, Object>> resourceAnnotations(@PathVariable("id") Long id, @RequestBody AnnotationsRequest request) throws SQLException, ReflectiveOperationException, ManagerException, ForbiddenException {
@@ -170,9 +179,7 @@ public class UtilController extends Controller {
         }
     }
 
-    public static record KwicFeatureFiler(Long feature, String[] values) {
-
-    }
+    public static record KwicFeatureFiler(Long feature, String[] values) {}
 
     public static record KwicRequest(List<Long> resources, String query, Integer width, Boolean reload, Long layer, List<KwicFeatureFiler> features, String query2, List<KwicFeatureFiler> features2) {
 
@@ -290,7 +297,6 @@ public class UtilController extends Controller {
     }
 
     private List<Layer> checkLayers(List<Long> ids) throws ReflectiveOperationException, SQLException, ForbiddenException, ManagerException {
-        logManager.appendMessage("of").appendMessage(Layer.class);
         List<Layer> layers = new ArrayList<>();
         if (ids == null || ids.isEmpty()) {
             for (Layer layer : layerManager.load()) {
@@ -304,12 +310,14 @@ public class UtilController extends Controller {
                 throw new ForbiddenException();
             }
         } else {
+            logManager.appendMessage("of").appendMessage(Layer.class);
             Layer layer;
             for (Long id : ids) {
                 if ((layer = layerManager.load(id)) == null) {
                     logManager.appendMessage("" + id);
                     throw new ManagerException("not found");
                 } else {
+                    logManager.appendMessage(layerManager.getLog(layer));
                     layers.add(layer);
                 }
             }
@@ -317,9 +325,7 @@ public class UtilController extends Controller {
         return layers;
     }
 
-    public static record Upos(String name, String description) {
-
-    }
+    public static record Upos(String name, String description) {}
 
     @GetMapping("upos")
     public List<Map<String, Object>> upos() throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
@@ -327,9 +333,7 @@ public class UtilController extends Controller {
         return analysisManager.getUpos();
     }
 
-    public static record FeatureValueRequest(List<Long> resources, String query, Long feature) {
-
-    }
+    public static record FeatureValueRequest(List<Long> resources, String query, Long feature) {}
 
     @PostMapping("feature-values")
     public List<String> featureValues(@RequestBody FeatureValueRequest request) throws ReflectiveOperationException, SQLException, ManagerException, ForbiddenException {

@@ -26,10 +26,10 @@ public class TokenManager extends EntityManager<Token> {
 
     @Override
     public String getLog(Token token) throws SQLException, ReflectiveOperationException {
-        if (token.getResource() == null || token.getStart() == null || token.getEnd() == null || token.getNumber() == null) {
-            return "" + token.getId();
-        } else {
+        try {
             return resourceManager.getLog(resourceManager.load(token.getResource().getId())) + " " + token.getNumber();
+        } catch (NullPointerException e) {
+            return "" + token.getId();
         }
     }
 

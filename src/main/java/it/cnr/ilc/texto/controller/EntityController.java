@@ -2,7 +2,6 @@ package it.cnr.ilc.texto.controller;
 
 import it.cnr.ilc.texto.domain.Action;
 import it.cnr.ilc.texto.domain.Entity;
-import it.cnr.ilc.texto.domain.Userable;
 import it.cnr.ilc.texto.manager.DomainManager;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import it.cnr.ilc.texto.manager.EntityManager;
@@ -65,17 +64,14 @@ public abstract class EntityController<E extends Entity> extends Controller {
     public E create() throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         logManager.setMessage("create empty").appendMessage(entityClass());
         checkAccess(Action.CREATE);
-        E entity = entityManager().create();
-        return entity;
+        return entityManager().create();
     }
 
     @PostMapping("create")
     public E create(@RequestBody E entity) throws ForbiddenException, SQLException, ReflectiveOperationException, ManagerException {
         logManager.setMessage("create").appendMessage(entityClass().getSimpleName()).appendMessage(entityManager().getLog(entity));
-        setUser(entity);
         checkAccess(entity, Action.CREATE);
-        entityManager().create(entity);
-        return entity;
+        return entityManager().create(entity);
     }
 
     @PostMapping("update")
@@ -84,13 +80,11 @@ public abstract class EntityController<E extends Entity> extends Controller {
         E previous = entityManager().load(entity.getId());
         if (previous == null) {
             logManager.appendMessage("" + entity.getId());
-            throw new ManagerException("not found");
+            throw new ManagerException("entity not found");
         }
-        logManager.appendMessage(entityManager().getLog(entity));
-        setUser(entity);
+        logManager.appendMessage(entityManager().getLog(previous));
         checkAccess(previous, Action.WRITE);
-        entityManager().update(entity);
-        return entity;
+        return entityManager().update(entity);
     }
 
     @PostMapping("{id}/update")
@@ -99,12 +93,11 @@ public abstract class EntityController<E extends Entity> extends Controller {
         E previous = entityManager().load(id);
         if (previous == null) {
             logManager.appendMessage("" + id);
-            throw new ManagerException("not found");
+            throw new ManagerException("entity not found");
         }
         logManager.appendMessage(entityManager().getLog(previous));
         checkAccess(previous, Action.WRITE);
-        E entity = entityManager().update(id, values);
-        return entity;
+        return entityManager().update(id, values);
     }
 
     @DeleteMapping("remove")
@@ -113,13 +106,11 @@ public abstract class EntityController<E extends Entity> extends Controller {
         E previous = entityManager().load(entity.getId());
         if (previous == null) {
             logManager.appendMessage("" + entity.getId());
-            throw new ManagerException("not found");
+            throw new ManagerException("entity not found");
         }
         logManager.appendMessage(entityManager().getLog(previous));
-        setUser(entity);
         checkAccess(previous, Action.REMOVE);
-        entityManager().remove(entity);
-        return domainManager.toMap(entity);
+        return domainManager.toMap(entityManager().remove(previous.getId()));
     }
 
     @DeleteMapping("{id}/remove")
@@ -128,12 +119,11 @@ public abstract class EntityController<E extends Entity> extends Controller {
         E previous = entityManager().load(id);
         if (previous == null) {
             logManager.appendMessage("" + id);
-            throw new ManagerException("not found");
+            throw new ManagerException("entity not found");
         }
         logManager.appendMessage(entityManager().getLog(previous));
         checkAccess(previous, Action.REMOVE);
-        E entity = entityManager().remove(id);
-        return domainManager.toMap(entity);
+        return domainManager.toMap(entityManager().remove(previous.getId()));
     }
 
     @PostMapping("restore")
@@ -142,14 +132,12 @@ public abstract class EntityController<E extends Entity> extends Controller {
         List<E> entities = entityManager().history(entity.getId());
         if (entities.isEmpty()) {
             logManager.appendMessage("" + entity.getId());
-            throw new ManagerException("not found");
+            throw new ManagerException("entity not found");
         }
         E presious = entities.getLast();
-        logManager.appendMessage(entityManager().getLog(entity));
-        setUser(entity);
+        logManager.appendMessage(entityManager().getLog(presious));
         checkAccess(presious, Action.REMOVE);
-        entityManager().restore(entity);
-        return entity;
+        return entityManager().restore(presious.getId());
     }
 
     @GetMapping("{id}/restore")
@@ -158,13 +146,12 @@ public abstract class EntityController<E extends Entity> extends Controller {
         List<E> entities = entityManager().history(id);
         if (entities.isEmpty()) {
             logManager.appendMessage("" + id);
-            throw new ManagerException("not found");
+            throw new ManagerException("entity not found");
         }
         E presious = entities.getLast();
         logManager.appendMessage(entityManager().getLog(presious));
         checkAccess(presious, Action.REMOVE);
-        E entity = entityManager().restore(id);
-        return entity;
+        return entityManager().restore(id);
     }
 
     @GetMapping("{id}/history")
@@ -174,17 +161,11 @@ public abstract class EntityController<E extends Entity> extends Controller {
         List<E> entities = entityManager().history(id);
         if (entities.isEmpty()) {
             logManager.appendMessage("" + id);
-            throw new ManagerException("not found");
+            throw new ManagerException("entity not found");
         }
         logManager.appendMessage(entityManager().getLog(entities.get(0)));
         checkAccess(entities.get(0), Action.READ);
         return domainManager.toMap(entities);
-    }
-
-    private void setUser(E entity) {
-        if (entity instanceof Userable userable && userable.getUser() == null) {
-            userable.setUser(accessManager.getUser());
-        }
     }
 
     protected void checkAccess(Action action) throws ForbiddenException, ManagerException {

@@ -8,7 +8,6 @@ import it.cnr.ilc.texto.domain.Group;
 import it.cnr.ilc.texto.domain.GroupUser;
 import it.cnr.ilc.texto.domain.Role;
 import it.cnr.ilc.texto.domain.User;
-import it.cnr.ilc.texto.domain.Userable;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +22,8 @@ import java.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import it.cnr.ilc.texto.domain.Ownable;
+import org.springframework.context.annotation.Lazy;
 
 /**
  *
@@ -33,6 +34,7 @@ public class AccessManager extends Manager implements Closeable {
 
     @Autowired
     private DatabaseManager databaseManager;
+    @Lazy
     @Autowired
     private DomainManager domainManager;
 
@@ -84,8 +86,7 @@ public class AccessManager extends Manager implements Closeable {
 
     public boolean contains(User user) {
         return implementation.getSessions().stream()
-                .filter(s -> s.user.equals(user))
-                .findAny().isPresent();
+                .anyMatch(s -> s.user.equals(user));
     }
 
     public static abstract class AccessImplementation {
@@ -190,11 +191,10 @@ public class AccessManager extends Manager implements Closeable {
     @PostConstruct
     private void initAccesses() throws SQLException, ReflectiveOperationException {
         try {
-            String key;
             String sql = "select a.topic, a.action, r.id role, a.level from _access a join " + quote(Role.class) + " r on a.role = r.name";
             List<Map<String, Object>> list = databaseManager.query(sql);
             for (Map<String, Object> record : list) {
-                key = record.get("topic") + " " + record.get("action") + " " + record.get("role");
+                String key = record.get("topic") + " " + record.get("action") + " " + record.get("role");
                 accesses.put(key, Level.valueOf(record.get("level").toString()));
             }
         } finally {
@@ -202,13 +202,10 @@ public class AccessManager extends Manager implements Closeable {
         }
     }
 
-    public static class System {
-    }
-
     public static enum Level {
         NONE,
-        MINE,
-        SHARE,
+        OWNED,
+        SHARED,
         FULL
     }
 
@@ -226,7 +223,7 @@ public class AccessManager extends Manager implements Closeable {
         }
     }
 
-    public boolean hasAccess(Class clazz, Action action) {
+    private boolean hasAccess(Class clazz, Action action) {
         User user = getUser();
         Level level = getLevel(clazz.getSimpleName(), action, user);
         if (level == null || !level.equals(Level.FULL)) {
@@ -241,32 +238,32 @@ public class AccessManager extends Manager implements Closeable {
         }
     }
 
-    public boolean hasAccess(Entity entity, Action action) throws ReflectiveOperationException, SQLException {
+    private boolean hasAccess(Entity entity, Action action) throws ReflectiveOperationException, SQLException {
         User user = getUser();
         Level level = getLevel(entity.getClass().getSimpleName(), action, user);
         if (level == null || level.equals(Level.NONE)) {
             return false;
-        } else if (level.equals(Level.MINE)) {
-            if (!checkMine(entity, user)) {
+        } else if (level.equals(Level.OWNED)) {
+            if (!checkOwned(entity, user)) {
                 return false;
             }
-        } else if (level.equals(Level.SHARE)) {
-            if (!checkMine(entity, user) && !checkShare(entity, user, action)) {
+        } else if (level.equals(Level.SHARED)) {
+            if (!checkOwned(entity, user) && !checkShared(entity, user, action)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean checkMine(Entity entity, User user) {
-        if (entity instanceof Userable userable && userable.getUser() != null) {
-            return userable.getUser().getId().equals(user.getId());
+    private boolean checkOwned(Entity entity, User user) {
+        if (entity instanceof Ownable ownable && ownable.getUser() != null) {
+            return ownable.getUser().getId().equals(user.getId());
         } else {
             return false;
         }
     }
 
-    private boolean checkShare(Entity entity, User user, Action action) throws ReflectiveOperationException, SQLException {
+    private boolean checkShared(Entity entity, User user, Action action) throws ReflectiveOperationException, SQLException {
         String name = entity.getClass().getSimpleName();
         String field = name.substring(0, 1).toLowerCase().concat(name.substring(1)).concat("_id");
         String table = name.concat(User.class.getSimpleName());

@@ -11,6 +11,7 @@ public class Tagset extends Entity {
 
     private String name;
     private String description;
+    private TagsetItem defaultItem;
 
     @Unique
     @Required
@@ -28,6 +29,14 @@ public class Tagset extends Entity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public TagsetItem getDefaultItem() {
+        return defaultItem;
+    }
+
+    public void setDefaultItem(TagsetItem defaultItem) {
+        this.defaultItem = defaultItem;
     }
 
 }

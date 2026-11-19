@@ -38,7 +38,7 @@ public class UserManager extends EntityManager<User> {
 
     @Trigger(event = Event.PRE_REMOVE)
     public void removeHome(User previous, User entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        folderManager.removeHome(entity);
+        folderManager.removeHome(previous);
     }
 
     public User authenticate(String username, String password) throws SQLException, ReflectiveOperationException, ManagerException {

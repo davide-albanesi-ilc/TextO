@@ -61,20 +61,20 @@ public abstract class EntityManager<E extends Entity> extends Manager {
         return domainManager.create(entityClass());
     }
 
-    public void create(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        domainManager.create(entity);
+    public E create(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+        return domainManager.create(entity);
     }
 
-    public void update(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        domainManager.update(entity);
+    public E update(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+        return domainManager.update(entity);
     }
 
     public E update(Long id, Map<String, Object> values) throws SQLException, ReflectiveOperationException, ManagerException {
         return domainManager.update(entityClass(), id, values);
     }
 
-    public void remove(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        domainManager.remove(entity);
+    public E remove(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
+        return domainManager.remove(entityClass(), entity.getId());
     }
 
     public E remove(Long id) throws SQLException, ReflectiveOperationException, ManagerException {
@@ -83,10 +83,6 @@ public abstract class EntityManager<E extends Entity> extends Manager {
 
     public List<E> history(Long id) throws SQLException, ReflectiveOperationException, ManagerException {
         return domainManager.history(entityClass(), id);
-    }
-
-    public void restore(E entity) throws SQLException, ReflectiveOperationException, ManagerException {
-        domainManager.restore(entity);
     }
 
     public E restore(Long id) throws SQLException, ReflectiveOperationException, ManagerException {

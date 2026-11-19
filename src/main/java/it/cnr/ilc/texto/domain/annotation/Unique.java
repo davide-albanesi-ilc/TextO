@@ -13,5 +13,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Unique {
 
+    public String name() default "";
+
     public String[] group() default {};
 }

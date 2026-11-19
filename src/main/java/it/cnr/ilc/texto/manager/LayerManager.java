@@ -45,14 +45,14 @@ public class LayerManager extends EntityManager<Layer> {
     @Trigger(event = Event.PRE_UPDATE)
     @Trigger(event = Event.PRE_REMOVE)
     public void checkAnalysis(Layer previous, Layer layer) throws SQLException, ReflectiveOperationException, ManagerException {
-        if(analysisManager.isAnalysisLayer(layer)) {
+        if(analysisManager.isAnalysisLayer(previous)|| analysisManager.isAnalysisLayer(layer)) {
             throw new ManagerException("analysis is locked");
         }
     }
 
     @Trigger(event = Event.PRE_REMOVE, order = 1)
     public void removeFeatures(Layer previous, Layer layer) throws SQLException, ReflectiveOperationException, ManagerException {
-        featureManager.remove(layer);
+        featureManager.remove(previous);
     }
 
     public void importLayers(List<String> lines) throws SQLException, ReflectiveOperationException, ManagerException {

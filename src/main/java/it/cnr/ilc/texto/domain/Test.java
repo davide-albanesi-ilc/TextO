@@ -1,5 +1,6 @@
 package it.cnr.ilc.texto.domain;
 
+import it.cnr.ilc.texto.domain.annotation.Final;
 import it.cnr.ilc.texto.domain.annotation.Required;
 import it.cnr.ilc.texto.domain.annotation.Unique;
 import java.time.LocalDate;
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
  *
  * @author oakgen
  */
-public class Test extends Entity {
+public class Test extends Entity implements Ownable {
 
     public enum TestEnum {
         ONE,
@@ -28,9 +29,10 @@ public class Test extends Entity {
     private LocalDateTime datetimet;
     private TestEnum enumt;
     private Test next;
+    private User user;
 
-    @Unique
     @Required
+    @Unique(name = "name", group = {"shortt"})
     public String getStringt() {
         return stringt;
     }
@@ -39,6 +41,7 @@ public class Test extends Entity {
         this.stringt = stringt;
     }
 
+    @Final
     public Boolean getBooleant() {
         return booleant;
     }
@@ -47,6 +50,7 @@ public class Test extends Entity {
         this.booleant = booleant;
     }
 
+    @Required
     public Short getShortt() {
         return shortt;
     }
@@ -117,6 +121,17 @@ public class Test extends Entity {
 
     public void setNext(Test next) {
         this.next = next;
+    }
+
+    @Override
+    @Required
+    public User getUser() {
+        return user;
+    }
+
+    @Override
+    public void setUser(User user) {
+        this.user = user;
     }
 
 }

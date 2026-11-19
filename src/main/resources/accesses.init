@@ -9,10 +9,10 @@ User	Administrator	READ	FULL
 User	Administrator	WRITE	FULL
 User	Administrator	CREATE	FULL
 User	Administrator	REMOVE	FULL
-User	Editor	READ	MINE
-User	Editor	WRITE	MINE
-User	Viewer	READ	MINE
-User	Viewer	WRITE	MINE
+User	Editor	READ	OWNED
+User	Editor	WRITE	OWNED
+User	Viewer	READ	OWNED
+User	Viewer	WRITE	OWNED
 
 Group	Administrator	READ	FULL
 Group	Administrator	WRITE	FULL
@@ -27,8 +27,8 @@ Folder	Administrator	CREATE	FULL
 Folder	Administrator	REMOVE	FULL
 Folder	Editor	READ	FULL
 Folder	Editor	WRITE	FULL
-Folder	Editor	CREATE	MINE
-Folder	Editor	REMOVE	MINE
+Folder	Editor	CREATE	OWNED
+Folder	Editor	REMOVE	OWNED
 Folder	Viewer	READ	FULL
 
 Resource	Administrator	READ	FULL
@@ -37,8 +37,8 @@ Resource	Administrator	CREATE	FULL
 Resource	Administrator	REMOVE	FULL
 Resource	Editor	READ	FULL
 Resource	Editor	WRITE	FULL
-Resource	Editor	CREATE	MINE
-Resource	Editor	REMOVE	MINE
+Resource	Editor	CREATE	OWNED
+Resource	Editor	REMOVE	OWNED
 Resource	Viewer	READ	FULL
 
 Annotation	Administrator	READ	FULL
@@ -46,9 +46,9 @@ Annotation	Administrator	WRITE	FULL
 Annotation	Administrator	CREATE	FULL
 Annotation	Administrator	REMOVE	FULL
 Annotation	Editor	READ	FULL
-Annotation	Editor	WRITE	MINE
-Annotation	Editor	CREATE	MINE
-Annotation	Editor	REMOVE	MINE
+Annotation	Editor	WRITE	OWNED
+Annotation	Editor	CREATE	OWNED
+Annotation	Editor	REMOVE	OWNED
 Annotation	Viewer	READ	FULL
 
 Layer	Administrator	READ	FULL

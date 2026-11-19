@@ -10,6 +10,9 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,19 +77,30 @@ public final class DatabaseManager extends Manager implements Closeable {
         try (Statement statement = connection.createStatement()) {
             List<Map<String, Object>> list = new ArrayList<>();
             Map<String, Object> record;
-            ResultSetMetaData metaData;
             logger.debug(sql.replaceAll("\\s+", " "));
             ResultSet result = statement.executeQuery(sql);
+            ResultSetMetaData metaData = result.getMetaData();
+            int columnCount = metaData.getColumnCount();
             while (result.next()) {
-                metaData = result.getMetaData();
                 record = new LinkedHashMap<>();
-                for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                    record.put(metaData.getColumnLabel(i), result.getObject(i));
+                for (int i = 1; i <= columnCount; i++) {
+                    record.put(metaData.getColumnLabel(i), getValue(result, metaData, i));
                 }
                 list.add(record);
             }
             return list;
         }
+    }
+
+    private static Object getValue(ResultSet result, ResultSetMetaData metaData, int i) throws SQLException {
+        return switch (metaData.getColumnType(i)) {
+            case Types.TIMESTAMP ->
+                result.getObject(i, LocalDateTime.class);
+            case Types.DATE ->
+                result.getObject(i, LocalDate.class);
+            default ->
+                result.getObject(i);
+        };
     }
 
     public List<Map<String, Object>> query(String sql) throws SQLException {

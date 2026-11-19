@@ -4,6 +4,7 @@ import it.cnr.ilc.texto.manager.exception.ManagerException;
 import it.cnr.ilc.texto.domain.Tagset;
 import it.cnr.ilc.texto.domain.TagsetItem;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import it.cnr.ilc.texto.manager.annotation.Check;
 import it.cnr.ilc.texto.manager.annotation.Trigger;
 import java.sql.SQLException;
 import java.util.List;
@@ -38,8 +39,21 @@ public class TagsetManager extends EntityManager<Tagset> {
     @Trigger(event = Trigger.Event.PRE_UPDATE)
     @Trigger(event = Trigger.Event.PRE_REMOVE)
     public void checkAnalysis(Tagset previous, Tagset tagset) throws SQLException, ReflectiveOperationException, ManagerException {
-        if (analysisManager.isAnalysisTagset(tagset)) {
+        if (analysisManager.isAnalysisTagset(previous) || analysisManager.isAnalysisTagset(tagset)) {
             throw new ManagerException("analysis is locked");
+        }
+    }
+
+    @Check
+    public void checkDefault(Tagset previous, Tagset tagset) throws SQLException, ReflectiveOperationException, ManagerException {
+        if (tagset.getDefaultItem() != null) {
+            TagsetItem defaultItem = tagsetItemManager.load(tagset.getDefaultItem().getId());
+            if (defaultItem == null) {
+                throw new ManagerException("default item not found");
+            }
+            if (!defaultItem.getTagset().equals(tagset)) {
+                throw new ManagerException("invalid default item");
+            }
         }
     }
 

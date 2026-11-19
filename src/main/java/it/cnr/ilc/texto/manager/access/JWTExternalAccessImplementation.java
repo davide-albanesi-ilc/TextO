@@ -6,9 +6,11 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import it.cnr.ilc.texto.domain.User;
 import static it.cnr.ilc.texto.manager.DomainManager.quote;
+import static it.cnr.ilc.texto.manager.DomainManager.sqlValue;
 import it.cnr.ilc.texto.manager.exception.AuthorizationException;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
@@ -26,8 +28,8 @@ public abstract class JWTExternalAccessImplementation extends ExternalAccessImpl
 
     @Override
     protected void init() throws AuthorizationException {
-        try (InputStream input = JWTExternalAccessImplementation.class.getResourceAsStream("/public.pem")) {
-            publicKey = new String(input.readAllBytes())
+        try {
+            publicKey = new String(Files.readAllBytes(Paths.get(environment.getProperty("jwt.public-key", "public.pem"))))
                     .replaceAll("-----.*-----", "")
                     .replaceAll("\n", "");
         } catch (IOException e) {
@@ -68,13 +70,11 @@ public abstract class JWTExternalAccessImplementation extends ExternalAccessImpl
         Map<String, Object> payload = mapper.readValue(token, Map.class);
         StringBuilder sql = new StringBuilder();
         sql.append("select * from ").append(quote(User.class))
-                .append(" where username = '").append(retrieveUsername(payload)).append("'");
+                .append(" where username = ").append(sqlValue(retrieveUsername(payload)));
         User user = domainManager.loadUnique(User.class, sql.toString());
         if (user == null) {
             user = retrieveUser(payload);
-            beforeCreationUser(user);
             domainManager.create(user);
-            afterCreationUser(user);
             databaseManager.getConnection().commit();
         }
         return user;
@@ -84,9 +84,4 @@ public abstract class JWTExternalAccessImplementation extends ExternalAccessImpl
 
     protected abstract User retrieveUser(Map<String, Object> payload) throws Exception;
 
-    protected void beforeCreationUser(User user) throws Exception {
-    }
-
-    protected void afterCreationUser(User user) throws Exception {
-    }
 }
